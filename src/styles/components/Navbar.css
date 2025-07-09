@@ -1,0 +1,36 @@
+.navbar {
+    margin: 1rem;
+    padding: 1rem;
+    width: 15%;
+    height: 80vh;
+    border-radius: 1rem;
+    background-color: var(--color-primary);
+}
+
+.navbar__list {
+    display: grid;
+    width: 100%;
+}
+
+.navbar__list__item {
+    display: grid;
+    grid-template-columns: repeat(2, 15% 85%);
+    align-items: center;
+    column-gap: 0.5rem;
+    padding: 0.5rem;
+    width: 100%;
+    border-radius: 1rem;
+}
+
+.navbar__list__item:hover {
+    border: 2px solid var(--color-grey4);
+}
+
+.navbar__list__link {
+    text-decoration: none;
+    color: var(--color-black);
+}
+
+.navbar__list__image {
+    width: 30px;
+}
