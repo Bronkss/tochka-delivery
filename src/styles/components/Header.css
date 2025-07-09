@@ -1,0 +1,43 @@
+.header {
+    display: grid;
+    grid-template-columns: repeat(4, 5% 70% 15% 5%);
+    justify-content: space-between;
+    align-items: center;
+    height: auto;
+    column-gap: 1rem;
+    background-color: var(--color-primary);
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    margin: 0 1rem;
+}
+
+.header__logo {
+    width: clamp(40px, 6vw, 100px);
+    border-radius: 1rem;
+}
+
+.searchInput {
+    border-radius: 1rem;
+    border: 1px solid black;
+    padding: 1rem;
+}
+
+.auth {
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(2, auto);
+    gap: 1rem;
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: 1rem;
+    text-decoration: none;
+    color: black;
+}
+
+.support {
+    display: grid;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: 1rem;
+}
