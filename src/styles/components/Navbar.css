@@ -5,6 +5,7 @@
     height: 80vh;
     border-radius: 1rem;
     background-color: var(--color-primary);
+    position: fixed;
 }
 
 .navbar__list {
