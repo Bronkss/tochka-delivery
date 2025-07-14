@@ -5,3 +5,5 @@
 /* Components */
 @import 'components/Header.css';
 @import 'components/Navbar.css';
+@import "components/MainContent.css";
+@import 'components/CategoryCard.css';

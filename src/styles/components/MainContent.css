@@ -1,0 +1,37 @@
+.main-content {
+    margin: 1rem 0 0 17%;
+    padding: 1.5rem;
+    width: 60%;
+    height: 80vh;
+    border-radius: 1rem;
+    background-color: var(--color-primary);
+    /* Переделать  */
+    font-family: Bahnschrift, sans-serif;
+    overflow-y: scroll;
+}
+
+.main-content::-webkit-scrollbar {
+    display: none;
+}
+
+.main-content__title {
+    font-size: 2.5rem;
+}
+
+.main-content__title span {
+    /* Переделать */
+    color: grey;
+}
+
+.main-content__category {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, auto);
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
+}
+
+.main-content__category__gotovaya-eda {
+    grid-column: 1 / -1; /* Заголовок на всю ширину */
+    font-size: 1.5rem;
+}

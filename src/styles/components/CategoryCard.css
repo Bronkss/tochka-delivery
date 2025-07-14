@@ -1,0 +1,19 @@
+.category-card {
+    display: grid;
+    grid-template-rows: repeat(2, 1fr);
+    height: auto;
+    border-radius: 1rem;
+    width: auto;
+    padding: 1rem;
+    cursor: pointer;
+    background-color: var(--color-grey4);
+}
+
+.category-card h3 {
+    font-weight: normal;
+}
+
+.category-card img {
+    width: 6rem;
+    justify-self: center;
+}
