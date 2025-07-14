@@ -4,7 +4,7 @@ function Header() {
     return (
         <>
             <header className="header">
-                <img className="header__logo" src="/logo.png" alt="логотип компании"/>
+                <img className="header__logo" src="/rodnik-logo.png" alt="логотип компании"/>
                 <input className="searchInput" placeholder="Искать в Роднике" type="text"
                        spellCheck="false" autoCorrect="off" autoComplete="off"/>
                 <Link to="/auth" className="auth">

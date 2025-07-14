@@ -1,4 +1,3 @@
-import '../styles/components/MainContent.css'
 import CategoryCard from "./CategoryCard.tsx";
 
 function MainContent() {

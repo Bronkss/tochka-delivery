@@ -1,0 +1,9 @@
+.maps-container {
+    border-radius: 1rem;
+    width: 100%;
+    height: 100%;
+}
+
+.maps-container canvas {
+    border-radius: 1rem;
+}
