@@ -7,3 +7,5 @@
 @import 'components/Navbar.css';
 @import "components/MainContent.css";
 @import 'components/CategoryCard.css';
+@import 'components/LocationBasketSwitcher.css';
+@import "components/YandexMaps.css";
