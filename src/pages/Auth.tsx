@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import '../styles/pages/Auth.css'; // Создадим этот файл позже
 
 export const Auth = () => {
     return (
