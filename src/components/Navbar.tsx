@@ -1,23 +1,38 @@
+import gotovayaEdaImage from '../assets/navbar-images/gotovaya-eda.png';
+import { useState } from "react";
+import { Link } from 'react-router-dom';
+
 function Navbar() {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleMenu = () => {
+        setIsOpen(!isOpen);
+    };
+
     return (
-        <>
-            <nav className="navbar">
-                <ul className="navbar__list">
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Готовая еда</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Морозилка</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Овощи и фрукты</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Молочная продукция</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Баккалея</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Хлеб</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Мясо и рыба</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Вода и напитки</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Сладкое</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Снеки</a></li>
-                    <li className="navbar__list__item"><img className="navbar__list__image" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxSHOwFfTAvVk9JnKR7e1q3eebM9c5mpMFy2IYQC3wxFEK8Ijc4vNeTTLym-ncX6HBxKw&usqp=CAU" /><a href="#" className="navbar__list__link">Для детей</a></li>
+        <nav className="navbar">
+            <div className="navbar__category">
+                <button
+                    className={`navbar__button ${isOpen ? 'active' : ''}`}
+                    aria-expanded={isOpen}
+                    aria-controls="list"
+                    onClick={toggleMenu}
+                >
+                    <img className="navbar__image" src={gotovayaEdaImage} alt="Готовая еда" />
+                    Готовая еда
+                </button>
+                <ul
+                    className="navbar__list"
+                    id="list"
+                    aria-hidden={!isOpen}
+                >
+                    <li className="navbar__list__item">
+                        <Link to="/category/hot-dogs" className="navbar__list__link" tabIndex={isOpen ? 0 : -1}>Хот-доги</Link>
+                    </li>
                 </ul>
-            </nav>
-        </>
-    )
+            </div>
+        </nav>
+    );
 }
 
 export default Navbar;

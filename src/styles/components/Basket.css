@@ -23,10 +23,10 @@
 }
 
 .basket__preview-button {
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 1.5rem;
-    background-color: purple;
-    color: white;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
     margin-bottom: 2rem;
     width: 50%;
     cursor: no-drop;
@@ -34,6 +34,7 @@
 
 .basket__description {
     display: grid;
+    justify-items: center;
 }
 
 .basket__description img {

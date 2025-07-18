@@ -1,0 +1,57 @@
+.product-card {
+    margin-top: 1rem;
+    grid-template-rows: repeat(4, 1fr);
+    height: 17rem;
+    border-radius: 1rem;
+    width: 10rem;
+}
+
+.product-card__image-block {
+    display: grid;
+    width: 100%;
+    height: 50%;
+    border-radius: 1rem;
+    background-color: var(--color-grey4);
+    place-content: center;
+}
+
+.product-card__image {
+    width: 7rem;
+}
+
+.products-card__title {
+    font-size: 1rem;
+    font-weight: normal;
+    padding: 0.5rem 0 0 0.5rem;
+}
+
+.product-card__weight {
+    padding: 0 0 0 0.5rem;
+    font-size: 0.8rem;
+}
+
+.product-card__pay {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    background-color: var(--color-price-button);
+    border-radius: 2rem;
+    width: 80%;
+    margin-top: 1rem;
+}
+
+.product-card__pay__price {
+    font-weight: bold;
+    font-family: "Comic Sans MS", sans-serif;
+}
+
+.product-card__pay__add-to-basket {
+    background-color: transparent;
+}
+
+.product-card__pay__add-to-basket:active {
+    transform: scale(0.8);
+}

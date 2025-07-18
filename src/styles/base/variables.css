@@ -1,5 +1,8 @@
 :root {
     --color-primary: #ffffff;
     --color-grey4: #f2f2f2;
-    --color-black: #000000;
+    --color-black: #404040;
+    --color-grey: #808080;
+    --color-accent: #a18da4;
+    --color-price-button: #ffebef;
 }
