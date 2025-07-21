@@ -21,6 +21,7 @@
 
 .navbar__list__item {
     overflow: hidden;
+    display: grid;
 }
 
 .navbar__list__link {

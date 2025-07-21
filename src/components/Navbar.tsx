@@ -28,6 +28,7 @@ function Navbar() {
                 >
                     <li className="navbar__list__item">
                         <Link to="/category/hot-dogs" className="navbar__list__link" tabIndex={isOpen ? 0 : -1}>Хот-доги</Link>
+                        <Link to="/category/burgers" className="navbar__list__link" tabIndex={isOpen ? 0 : -1}>Бургеры</Link>
                     </li>
                 </ul>
             </div>
