@@ -40,7 +40,7 @@
 }
 
 :focus-visible {
-    outline: 2px dashed /* вставить цвет */;
+    outline: 2px dashed var(--color-accent);
     outline-offset: 1px;
 }
 
@@ -85,7 +85,7 @@ body {
     background-color: var(--color-grey4);
 
     /*font-family: var(!* вставить значение *!, --font-family-system);*/
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "Ubuntu", sans-serif;
     line-height: 1.5;
 
     /* Оптимизация отображения текста */
@@ -95,44 +95,17 @@ body {
 html {
     position: relative;
     height: 100%;
-    font-size: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    scroll-behavior: smooth;
+    font-size: 62.5%;
+    overflow: hidden;
 }
 
 /* Стилизуем scrollbar страницы */
 
 body::-webkit-scrollbar {
     width: 15px;
-    display: none;
+    display: block;
 }
 
-body::-webkit-scrollbar-track {
-    background: var(--color-disco-ball);
-    box-shadow: 0 0 2px rgb(0 0 0 / 20%) inset;
-}
-
-body::-webkit-scrollbar-thumb {
-    border: 3px solid var(--color-disco-ball);
-    border-radius: 8px;
-    background: var(--color-grey-shingle);
-}
-
-body::-webkit-scrollbar-thumb:hover {
-    background: var(--color-namara-grey);
-}
-
-/* Добавляем класс для блокировки прокручивания контента. Резервируем место под полосу прокрутки, чтобы контент не прыгал при исчезновении скроллбара. */
-
-html,
-body {
-    scrollbar-gutter: stable;
-}
-
-body.lock {
-    overflow: hidden;
-}
 
 /* Добавляем для элементов вложенных цитат выбранный стиль кавычек */
 

@@ -3,7 +3,7 @@ import Navbar from "../../components/Navbar.tsx";
 import LocationBasketSwitcher from "../../components/LocationBasketSwitcher.tsx";
 import ProductsContent from "../../components/ProductsContent.tsx";
 import ProductsCard from "../../components/ProductsCard.tsx";
-import gotovayaEda from '../../assets/navbar-images/gotovaya-eda.png'
+import hotDogImage from '../../assets/categories/gotovaya-eda/hot-dog.png'
 
 export default function HotDogs() {
     return (
@@ -12,7 +12,7 @@ export default function HotDogs() {
             <Navbar/>
             <LocationBasketSwitcher/>
             <ProductsContent title="Хот-доги" >
-                <ProductsCard image={gotovayaEda} title="Хот дог с пеперони и сыром" weight="200 г" price={100}/>
+                <ProductsCard id="1" image={hotDogImage} title="Хот дог с пеперони и сыром" weight="200 г" price={100}/>
             </ProductsContent>
         </>
     )

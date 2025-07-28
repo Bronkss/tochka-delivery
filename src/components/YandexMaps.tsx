@@ -1,8 +1,8 @@
 import {useState, useCallback, useEffect} from "react";
 import type {SearchResponse, Feature} from '@yandex/ymaps3-types';
-import { useDispatch, useSelector } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {setAddress, setButtonCheck} from '../app/addressSlice';
-import type { RootState } from '../app/store';
+import type {RootState} from '../app/store';
 
 import {
     YMap,
@@ -19,7 +19,7 @@ import {
 import {initialMarkerProps} from "../lib/ymaps3.ts";
 import {findSearchResultBoundsRange} from "../lib/common.ts";
 
-const { YMapGeolocationControl } = reactify.module(await ymaps3.import('@yandex/ymaps3-controls@0.0.1'));
+const {YMapGeolocationControl} = reactify.module(await ymaps3.import('@yandex/ymaps3-controls@0.0.1'));
 
 const {YMapDefaultMarker, YMapSearchControl} = reactify.module(
     await ymaps3.import('@yandex/ymaps3-default-ui-theme')
@@ -55,7 +55,7 @@ export default function YandexMaps() {
     const searchResultHandler = useCallback((searchResult: SearchResponse) => {
         setSearchMarkersProps(searchResult);
         updateMapLocation(searchResult);
-        dispatch(setAddress(searchResult[0].properties.description.split(',')[0]+ ", " + searchResult[0].properties.name));
+        dispatch(setAddress(searchResult[0].properties.description.split(',')[0] + ", " + searchResult[0].properties.name));
     }, []);
 
     const onClickSearchMarkerHandler = useCallback(
@@ -69,10 +69,11 @@ export default function YandexMaps() {
 
     //
     // // Получаем текущий адрес из хранилища
-    const { value: savedAddress, isValid, buttonCheck } = useSelector((state: RootState) => state.address);
+    const {value: savedAddress, isValid, buttonCheck} = useSelector((state: RootState) => state.address);
     //
     // // Проверяем, нужно ли показывать карту
     const shouldShowMap = !savedAddress;
+
     //
     function handleClick() {
 
@@ -87,6 +88,10 @@ export default function YandexMaps() {
         dispatch(setButtonCheck(true))
     }
 
+    function handleClickBack() {
+        dispatch(setAddress(''))
+    }
+
     const showError = (message: string) => {
         setError(message);
         setTimeout(() => setError(null), 5000);
@@ -97,30 +102,32 @@ export default function YandexMaps() {
 
     return (
         <div className="maps-container">
-            <div className="maps-container__info">
-                <span>{savedAddress}</span>
-                <button onClick={handleClick}>Да, верно</button>
-                {error && <div className="error">{error}</div>}
-            </div>
-            {/*<div className="address">*/}
-            {/*    <input*/}
-            {/*        placeholder="Введите адрес"*/}
-            {/*        value={localAddress}*/}
-            {/*        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {*/}
-            {/*            setLocalAddress(e.target.value);*/}
-            {/*            setError('');*/}
-            {/*        }}*/}
-            {/*        className="address__input"*/}
-            {/*    />*/}
-            {/*    <button className="address__button" onClick={handleClick}>Выбрать</button>*/}
-            {/*    {error && <div style={{ color: 'red' }}>{error}</div>}*/}
-            {/*</div>*/}
+            {!savedAddress && (
+                <div className="hint">
+                    <span>Введите адрес в поле поиска начиная:<br/> Иркутская область Николаевка "ваша улица и номер дома"</span>
+                    <span>(Например: Иркутская область Николаевка Ленина 1)</span>
+                </div>
+            )}
+
+            {savedAddress && (
+                <div className="maps-container__info">
+                    <div className="maps-container__content">
+                        <span>Ваш адрес:</span>
+                        <span>{savedAddress}</span>
+                        <div className="maps-container__info__button-block">
+                            <button onClick={handleClick}>Да, верно</button>
+                            <button onClick={handleClickBack}>Нет, другой</button>
+                        </div>
+                        {error && <div className="error">{error}</div>}
+                    </div>
+                </div>
+            )}
 
             <YMap location={reactify.useDefault(LOCATION)}>
                 <YMapDefaultSchemeLayer/>
                 <YMapDefaultFeaturesLayer/>
                 <YMapControls position="top">
-                    <YMapSearchControl searchResult={searchResultHandler} />
+                    <YMapSearchControl searchResult={searchResultHandler}/>
                 </YMapControls>
 
                 {searchMarkersProps.map((marker) => (

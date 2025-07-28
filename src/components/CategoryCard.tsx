@@ -8,7 +8,7 @@ interface CategoryCardProps {
     linkId?: string;
 }
 
-function CategoryCard(props: CategoryCardProps) {
+export default function CategoryCard(props: CategoryCardProps) {
     return (
         <Link to={props.linkId ?? ""} className="category-card__link">
             <div className="category-card">
@@ -18,5 +18,3 @@ function CategoryCard(props: CategoryCardProps) {
         </Link>
     )
 }
-
-export default CategoryCard;

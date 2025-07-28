@@ -1,8 +1,12 @@
 :root {
     --color-primary: #ffffff;
-    --color-grey4: #f2f2f2;
     --color-black: #404040;
+    --color-total-black: #000000;
     --color-grey: #808080;
-    --color-accent: #a18da4;
+    --color-grey2: #a6a6a6;
+    --color-grey3: #595959;
+    --color-grey4: #F2F2F2;
+    --color-accent: #9669ab;
     --color-price-button: #ffebef;
+    --color-warning: rgba(0, 0, 0, 0.5);
 }

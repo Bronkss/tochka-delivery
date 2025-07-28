@@ -1,24 +1,41 @@
+.category-card__link {
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+
 .category-card {
-    display: grid;
-    grid-template-rows: repeat(2, 1fr);
-    height: 15rem;
+    display: flex;
+    flex-direction: column;
+    height: 24rem;
+    background: var(--color-grey4);
     border-radius: 1rem;
-    width: auto;
-    padding: 1rem;
-    cursor: pointer;
-    background-color: var(--color-grey4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .category-card h3 {
-    font-weight: normal;
+    margin: 1rem;
+    padding-left: 2rem;
+    font-size: 1.8rem;
+    color: var(--color-black);
+    font-weight: 600;
+    flex-shrink: 0; /* Запрещаем сжатие заголовка */
 }
 
 .category-card img {
-    width: 6rem;
-    justify-self: center;
-}
-
-.category-card__link {
-    text-decoration: none;
-    color: var(--color-black);
+    width: 100%;
+    height: auto;
+    max-height: 150px;
+    object-fit: contain;
+    margin: auto; /* Центрируем изображение */
+    padding: 0 1rem 1rem;
+    display: block;
+    flex-grow: 1; /* Занимаем все доступное пространство */
 }
