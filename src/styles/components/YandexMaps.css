@@ -5,7 +5,7 @@
 }
 
 .maps-container canvas {
-    border-radius: 2rem;
+    border-radius: 1rem;
 }
 
 .address {
@@ -30,4 +30,44 @@
     padding: 0.5rem 1rem;
     border-radius: 1rem;
     margin: 1rem;
+}
+
+.ymaps3x0--control {
+    margin-top: 4.5rem;
+}
+
+.maps-container__info {
+    position: absolute;
+    z-index: 100;
+    background-color: var(--color-primary);
+    border-radius: 1rem;
+    cursor: pointer;
+    height: auto;
+}
+
+.maps-container__info button {
+    z-index: 100;
+    background-color: purple;
+    padding: 0.5rem;
+    color: whitesmoke;
+    border-radius: 2rem;
+    margin: 6px;
+}
+
+.maps-container__info span {
+   font-size: 1rem;
+    padding-left: 0.5rem;
+}
+
+.error {
+    display: flex;
+    position: absolute;
+    top: 0;
+    background-color: var(--color-primary);
+    border-radius: 1rem;
+    height: 5rem;
+    z-index: 100;
+    text-align: center;
+    padding-top: 1rem;
+    color: red;
 }
