@@ -10,11 +10,13 @@ export const LOCATION: YMapLocationRequest = {
     zoom: 15
 };
 
+export const COMMON_LOCATION_PARAMS: YMapLocationRequest = {easing: 'ease-in-out', duration: 2000, zoom: 15};
+
 export const {
     YMap,
     YMapDefaultSchemeLayer,
     YMapDefaultFeaturesLayer,
     YMapMarker,
-    YMapControls,
+    YMapControls, YMapControl
 } = reactify.module(ymaps3);
 

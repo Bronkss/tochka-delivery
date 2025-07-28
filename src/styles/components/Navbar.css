@@ -5,26 +5,22 @@
     height: 80vh;
     border-radius: 1rem;
     background-color: var(--color-primary);
-    position: fixed;
+    position: absolute;
 }
 
 .navbar__list {
+    position: relative;
     display: grid;
-    width: 100%;
+    margin-block-start: 0.5lh;
+    padding-left: 3.5rem;
+    overflow: hidden;
+    line-height: 0;
+    color: transparent;
+    transition: line-height 0.5s, color 0.5s;
 }
 
 .navbar__list__item {
-    display: grid;
-    grid-template-columns: repeat(2, 15% 85%);
-    align-items: center;
-    column-gap: 0.5rem;
-    padding: 0.5rem;
-    width: 100%;
-    border-radius: 1rem;
-}
-
-.navbar__list__item:hover {
-    border: 2px solid var(--color-grey4);
+    overflow: hidden;
 }
 
 .navbar__list__link {
@@ -32,6 +28,80 @@
     color: var(--color-black);
 }
 
-.navbar__list__image {
-    width: 30px;
+.navbar__image {
+    width: 40px;
+}
+
+.navbar__button {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    background-color: var(--color-primary);
+    padding: 0.5rem;
+    border-radius: 1rem;
+}
+
+.navbar__button:hover,
+.navbar__button:focus-visible {
+    /*Переделать*/
+    background-color: #9e75b2;
+    color: whitesmoke;
+}
+
+.navbar {
+    margin: 1rem;
+    padding: 1rem;
+    width: 15%;
+    height: 80vh;
+    border-radius: 1rem;
+    background-color: var(--color-primary);
+    position: fixed;
+}
+
+.navbar__list {
+    position: relative;
+    display: grid;
+    margin-block-start: 0.5lh;
+    padding-left: 4rem;
+    overflow: hidden;
+    line-height: 0;
+    color: transparent;
+    transition: line-height 0.5s, color 0.5s;
+}
+
+.navbar__list__item {
+    overflow: hidden;
+}
+
+
+.navbar__list__link {
+    text-decoration: none;
+}
+
+.navbar__list__link:hover {
+    color: var(--color-grey);
+}
+
+.navbar__image {
+    width: 40px;
+}
+
+.navbar__button {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    background-color: var(--color-primary);
+    padding: 0.5rem;
+    border-radius: 1rem;
+}
+
+.navbar__button.active ~ .navbar__list {
+    line-height: 1.7;
+    color: currentColor;
 }

@@ -17,9 +17,8 @@
     --long-delay: 0.5s;
     --ultra-long: 1s;
 
-    /* Названия цветов берём отсюда: https://colornamer.robertcooper.me/ */
 
-    --color-main:  /* вставить цвет */ ;
+    --color-main: #404040;
     --color-disco-ball: #d4d4d4;
     --color-grey-shingle: #939393;
     --color-namara-grey: #7c7c7c;
@@ -86,6 +85,7 @@ body {
     background-color: var(--color-grey4);
 
     /*font-family: var(!* вставить значение *!, --font-family-system);*/
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
 
     /* Оптимизация отображения текста */
@@ -105,6 +105,7 @@ html {
 
 body::-webkit-scrollbar {
     width: 15px;
+    display: none;
 }
 
 body::-webkit-scrollbar-track {

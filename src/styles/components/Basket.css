@@ -1,0 +1,48 @@
+.basket {
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: space-between;
+    border-radius: 1rem;
+}
+
+.basket__address {
+    padding: 1rem;
+    justify-self: start;
+}
+
+.current-address {
+    font-size: 1.4rem;
+}
+
+.delivery-time {
+    display: block;
+    color: gray;
+}
+
+.basket__preview-button {
+    padding: 0.8rem;
+    border-radius: 1.5rem;
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    width: 50%;
+    cursor: no-drop;
+}
+
+.basket__description {
+    display: grid;
+    justify-items: center;
+}
+
+.basket__description img {
+    width: 150px;
+}
+
+.basket__description span {
+    padding-top: 1rem;
+    text-align: center;
+    color: grey;
+}

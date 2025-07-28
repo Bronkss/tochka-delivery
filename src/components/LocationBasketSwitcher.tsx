@@ -1,4 +1,5 @@
 import YandexMaps from "./YandexMaps.tsx";
+import Basket from "./Basket.tsx";
 
 
 function LocationBasketSwitcher() {
@@ -6,6 +7,7 @@ function LocationBasketSwitcher() {
         <>
             <div className="location-basket-switcher">
                 <YandexMaps />
+                <Basket />
             </div>
         </>
     )

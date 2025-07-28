@@ -2,11 +2,9 @@
     margin: 1rem 0 0 17%;
     padding: 1.5rem;
     width: 60%;
-    height: 80vh;
+    height: 85vh;
     border-radius: 1rem;
     background-color: var(--color-primary);
-    /* Переделать  */
-    font-family: Bahnschrift, sans-serif;
     overflow-y: scroll;
 }
 
@@ -34,4 +32,5 @@
 .main-content__category__gotovaya-eda {
     grid-column: 1 / -1; /* Заголовок на всю ширину */
     font-size: 1.5rem;
+    margin-bottom: 1rem;
 }

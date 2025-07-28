@@ -1,7 +1,7 @@
 .category-card {
     display: grid;
     grid-template-rows: repeat(2, 1fr);
-    height: auto;
+    height: 15rem;
     border-radius: 1rem;
     width: auto;
     padding: 1rem;
@@ -16,4 +16,9 @@
 .category-card img {
     width: 6rem;
     justify-self: center;
+}
+
+.category-card__link {
+    text-decoration: none;
+    color: var(--color-black);
 }
