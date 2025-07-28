@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import HotDogs from './categories/HotDogs';
 import Burgers from './categories/Burgers';
+import {NotFoundPage} from "./NotFoundPage.tsx";
 
 
 export default function CategoryPages() {
@@ -12,6 +13,6 @@ export default function CategoryPages() {
         case 'burgers':
             return <Burgers />
         default:
-    //         Переход на 404
+            return <NotFoundPage />;
     }
 }

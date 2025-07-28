@@ -1,5 +1,6 @@
 import {Link} from "react-router-dom";
 import React from "react";
+import Footer from './Footer'
 
 
 interface ProductsContentProps {
@@ -13,7 +14,10 @@ export default function ProductsContent({title, children}: ProductsContentProps)
             <section className="products-content" >
                 <Link to={"/"} className="products-content__linkToHome">Главная</Link>
                 <h2 className="products-content__title">{title}</h2>
-                {children}
+                <div className="products-content__cards">
+                    {children}
+                </div>
+                <Footer />
             </section>
         </>
     )

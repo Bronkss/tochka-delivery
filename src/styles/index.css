@@ -9,9 +9,32 @@
 @import 'components/CategoryCard.css';
 @import 'components/LocationBasketSwitcher.css';
 @import "components/YandexMaps.css";
+@import "components/YandexMapsPreview.css";
 @import "components/Basket.css";
 @import "components/ProductsContent.css";
 @import "components/ProductCard.css";
+@import 'components/Footer.css';
 
 /* Pages */
 @import "pages/Auth.css";
+@import "pages/NotFoundPage.css";
+
+/* global styles */
+
+#root {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 22rem 1fr 30rem;
+    column-gap: 1rem;
+    row-gap: 2rem;
+    margin: 0 2rem;
+    overflow: hidden;
+}
+
+@media (max-width: 1022px) {
+    #root {
+
+    }
+}
+
+/*Схлопывание на 1022 px*/

@@ -1,0 +1,198 @@
+.not-found-container {
+    position: relative;
+    height: 95vh;
+    overflow: hidden;
+    background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+    color: white;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 97vw;
+    z-index: 10000;
+    border-radius: 50%;
+    margin: 2rem 0;
+}
+
+/* Звездный фон */
+.stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+            radial-gradient(2px 2px at 50px 100px, #eee, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 150px 50px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 250px 150px, #ddd, rgba(0,0,0,0));
+    background-size: 300px 300px;
+    animation: twinkle 5s infinite alternate;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+/* Астронавт */
+.astronaut {
+    position: relative;
+    width: 150px;
+    height: 180px;
+    margin-bottom: 40px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.head {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+.body {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 80px;
+    background: white;
+    border-radius: 20px;
+    z-index: 5;
+}
+
+.panel {
+    position: absolute;
+    top: 15px;
+    left: 10px;
+    width: 30px;
+    height: 20px;
+    background: #3498db;
+    border-radius: 5px;
+}
+
+.arm {
+    position: absolute;
+    width: 20px;
+    height: 50px;
+    background: white;
+    border-radius: 10px;
+}
+
+.left-arm {
+    top: 50px;
+    left: -5px;
+    transform: rotate(30deg);
+    animation: arm-swing 4s ease-in-out infinite;
+}
+
+.right-arm {
+    top: 50px;
+    right: -5px;
+    transform: rotate(-30deg);
+    animation: arm-swing 4s ease-in-out infinite 0.5s;
+}
+
+.leg {
+    position: absolute;
+    width: 20px;
+    height: 40px;
+    background: white;
+    border-radius: 10px;
+    bottom: -20px;
+}
+
+.left-leg {
+    left: 15px;
+    transform: rotate(-10deg);
+}
+
+.right-leg {
+    right: 15px;
+    transform: rotate(10deg);
+}
+
+.backpack {
+    position: absolute;
+    top: 45px;
+    right: -15px;
+    width: 20px;
+    height: 30px;
+    background: #e74c3c;
+    border-radius: 5px;
+}
+
+/* Анимации */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes arm-swing {
+    0%, 100% { transform: rotate(30deg); }
+    50% { transform: rotate(-10deg); }
+}
+
+/* Контент */
+.not-found-content {
+    z-index: 1;
+    max-width: 500px;
+    padding: 0 20px;
+}
+
+.not-found-content h1 {
+    font-size: 100px;
+    margin: 0;
+    color: #3498db;
+    text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
+
+.not-found-content h2 {
+    font-size: 28px;
+    margin: 10px 0;
+}
+
+.not-found-content p {
+    font-size: 16px;
+    line-height: 1.6;
+    opacity: 0.8;
+    margin-bottom: 30px;
+}
+
+.back-button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+.back-button:hover {
+    background: #2980b9;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.6);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .not-found-content h1 {
+        font-size: 80px;
+    }
+
+    .astronaut {
+        width: 120px;
+        height: 150px;
+    }
+}

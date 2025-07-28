@@ -1,0 +1,13 @@
+.footer {
+    display: grid;
+    place-items: center;
+    height: 20rem;
+    border-radius: 3.2rem;
+    grid-column: 2 / 3;
+    margin-top: 5rem;
+    background-color: var(--color-grey4);
+}
+
+.footer span {
+    font-size: 3rem;
+}

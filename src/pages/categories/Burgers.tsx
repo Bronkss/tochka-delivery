@@ -12,7 +12,7 @@ export default function HotDogs() {
             <Navbar/>
             <LocationBasketSwitcher/>
             <ProductsContent title="Бургеры" >
-                <ProductsCard image={burger} title="Сочный бургер с сыром" weight="250 г" price={150}/>
+                <ProductsCard id="2" image={burger} title="Сочный бургер с сыром" weight="250 г" price={150}/>
             </ProductsContent>
         </>
     )

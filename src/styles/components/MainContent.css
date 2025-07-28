@@ -1,36 +1,58 @@
 .main-content {
-    margin: 1rem 0 0 17%;
     padding: 1.5rem;
-    width: 60%;
-    height: 85vh;
-    border-radius: 1rem;
+    width: auto;
+    height: 100%;
+    max-height: 85vh;
+    border-radius: 3.2rem 1.2rem 1.2rem 3.2rem;
     background-color: var(--color-primary);
-    overflow-y: scroll;
-}
-
-.main-content::-webkit-scrollbar {
-    display: none;
+    overflow-y: auto;
 }
 
 .main-content__title {
-    font-size: 2.5rem;
+    font-size: 3.8rem;
+}
+
+.main-content h2 {
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    grid-column: 1 / -1;
+    width: 100%;
 }
 
 .main-content__title span {
-    /* Переделать */
     color: grey;
 }
 
 .main-content__category {
-    margin-top: 1rem;
+    margin-top: 2rem;
     display: grid;
-    grid-template-columns: repeat(5, auto);
-    column-gap: 0.5rem;
-    row-gap: 0.5rem;
+    gap: 2rem;
 }
 
-.main-content__category__gotovaya-eda {
-    grid-column: 1 / -1; /* Заголовок на всю ширину */
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+.main-content__category__gotovaya-eda,
+.main-content__category__vegetables {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Стили для scroll-bar */
+
+.main-content::-webkit-scrollbar {
+    width: 8px;                       /* Ширина скроллбара */
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: transparent;          /* Цвет трека */
+    border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: #d4d4d4;             /* Цвет ползунка */
+    border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: #939393;             /* Цвет при наведении */
 }

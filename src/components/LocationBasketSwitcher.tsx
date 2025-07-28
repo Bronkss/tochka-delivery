@@ -1,12 +1,13 @@
-import YandexMaps from "./YandexMaps.tsx";
+import YandexMapsPreview from "./YandexMapsPreview.tsx";
 import Basket from "./Basket.tsx";
+
 
 
 function LocationBasketSwitcher() {
     return (
         <>
             <div className="location-basket-switcher">
-                <YandexMaps />
+                <YandexMapsPreview />
                 <Basket />
             </div>
         </>
