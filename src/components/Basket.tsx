@@ -5,6 +5,7 @@ import {removeFromBasket, addToBasket} from '../app/basketSlice';
 import {useDispatch} from 'react-redux';
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
+import defaultImage from "../assets/videos/defaultAnimation.mp4";
 
 export default function Basket() {
     const dispatch = useDispatch();
@@ -39,7 +40,17 @@ export default function Basket() {
                             <li key={item.title} className="basket__item">
                                 <div className="basket__item-info">
                                     <div className="basket__item-image-block">
-                                        <img src={item.image} alt={item.title} className="basket__item-image"/>
+                                        {item.image ?
+                                            <img src={item.image} alt={item.title} className="basket__item-image"/> :
+                                            <video
+                                                className="default-basket"
+                                                autoPlay
+                                                loop
+                                                muted
+                                                playsInline
+                                            >
+                                                <source src={defaultImage} type="video/mp4"/>
+                                            </video>}
                                     </div>
                                     <div className="basket__item-description">
                                         <div className="basket__item-description__title">
@@ -52,14 +63,14 @@ export default function Basket() {
                                                     className="basket__item-remove"
                                                     onClick={() => handleRemove(item.title)}
                                                 >
-                                                    <img src={removeIcon}/>
+                                                    <img src={removeIcon} alt=""/>
                                                 </button>
                                                 <span className="basket__item-quantity">{item.quantity}</span>
                                                 <button
                                                     className="basket__item-add"
                                                     onClick={() => dispatch(addToBasket(item))}
                                                 >
-                                                    <img src={addIcon}/>
+                                                    <img src={addIcon} alt=""/>
                                                 </button>
                                             </div>
                                             <span className="basket__item-price">{item.price * item.quantity} ₽</span>

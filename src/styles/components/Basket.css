@@ -158,3 +158,9 @@
     margin-bottom: 2rem;
     font-size: 1.8rem;
 }
+
+.default-basket {
+    width: 100%;
+    height: 100%;
+    border-radius: 3.2rem;
+}

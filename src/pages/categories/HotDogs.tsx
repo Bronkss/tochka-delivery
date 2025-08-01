@@ -3,16 +3,46 @@ import Navbar from "../../components/Navbar.tsx";
 import LocationBasketSwitcher from "../../components/LocationBasketSwitcher.tsx";
 import ProductsContent from "../../components/ProductsContent.tsx";
 import ProductsCard from "../../components/ProductsCard.tsx";
-import hotDogImage from '../../assets/categories/gotovaya-eda/hot-dog.png'
+import { useMoySkladApi } from '../../hooks/useMoySkladApi.ts';
+import type {Product} from "../../types/product.ts";
+import {useEffect, useState} from "react";
 
 export default function HotDogs() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const { fetchProductsByFolder } = useMoySkladApi();
+    const FOLDER_ID = '9e5a4aa8-6c71-11f0-0a80-14d8000f1e09'; // ID папки "Хот-доги"
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                const data = await fetchProductsByFolder(FOLDER_ID);
+                setProducts(data);
+            } catch (error) {
+                console.error('Ошибка загрузки товаров:', error);
+            }
+        };
+        loadProducts()
+    }, [fetchProductsByFolder]);
+
+
     return (
         <>
             <Header />
             <Navbar/>
             <LocationBasketSwitcher/>
             <ProductsContent title="Хот-доги" >
-                <ProductsCard id="1" image={hotDogImage} title="Хот дог с пеперони и сыром" weight="200 г" price={100}/>
+                {products.map(product => (
+                    <ProductsCard
+                        key={product.id}
+                        id={product.id}
+                        title={product.name}
+                        image={product.images?.rows?.[0]?.miniature?.href || ''}
+                        weight={product.weight || 0}
+                        price={Math.floor(product.salePrices?.[0]?.value || 0)}
+                        salePrices={product.salePrices}
+                        stock={product.stock}
+                    />
+                ))}
             </ProductsContent>
         </>
     )
