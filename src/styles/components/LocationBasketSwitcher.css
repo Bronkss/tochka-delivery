@@ -1,7 +1,9 @@
 .location-basket-switcher {
-    height: 85vh;
-    width: auto;
+    grid-area: aside;
+    align-self: start;
+    position: sticky;
+    top: 8rem; /* Аналогично навигации */
+    height: calc(95vh - 8rem);
     border-radius: 3.2rem;
     background-color: var(--color-primary);
-    grid-column: 3 / 4;
 }

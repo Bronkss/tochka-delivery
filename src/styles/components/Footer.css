@@ -1,11 +1,14 @@
 .footer {
+    grid-area: footer;
     display: grid;
     place-items: center;
     height: 20rem;
     border-radius: 3.2rem;
-    grid-column: 2 / 3;
-    margin-top: 5rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
     background-color: var(--color-grey4);
+    border: 1px solid black;
+    grid-column: 2 / 3;
 }
 
 .footer span {

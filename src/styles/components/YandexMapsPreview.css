@@ -61,7 +61,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 1000 !important;
     border-radius: 3.2rem;
 }
 
@@ -99,7 +99,7 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
-    z-index: 1000;
+    z-index: 1000 !important;
     display: flex;
     justify-content: flex-end; /* Выравнивание модального окна справа */
     align-items: flex-start; /* Выравнивание по верху */

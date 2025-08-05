@@ -1,6 +1,6 @@
 import {Link} from "react-router-dom";
 import React from "react";
-import Footer from './Footer'
+import Footer from "./Footer.tsx";
 
 
 interface ProductsContentProps {
@@ -17,8 +17,8 @@ export default function ProductsContent({title, children}: ProductsContentProps)
                 <div className="products-content__cards">
                     {children}
                 </div>
-                <Footer />
             </section>
+            <Footer />
         </>
     )
 }

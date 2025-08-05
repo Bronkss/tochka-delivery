@@ -4,6 +4,8 @@ import {addToBasket, removeFromBasket} from '../app/basketSlice';
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
 import defaultImage from '../assets/videos/defaultAnimation.mp4'
+import YandexMaps from "./YandexMaps.tsx";
+import {useEffect, useRef, useState} from "react";
 
 interface ProductCardProps {
     id: string;
@@ -22,6 +24,59 @@ interface ProductCardProps {
 
 export default function ProductsCard(props: ProductCardProps) {
     const dispatch = useDispatch();
+    const { value: savedAddress, isValid, buttonCheck } = useSelector((state: RootState) => state.address);
+    const [showModal, setShowModal] = useState(false);
+    const headerRef = useRef<HTMLElement | null>(null);
+    const originalHeaderZIndexRef = useRef<string>('');
+
+    const getCurrentZIndex = (element: HTMLElement): number => {
+        const zIndex = window.getComputedStyle(element).zIndex;
+        return zIndex === 'auto' ? 0 : parseInt(zIndex, 10);
+    };
+
+    useEffect(() => {
+        if (showModal && isValid && buttonCheck && savedAddress) {
+            setShowModal(false);
+        }
+    }, [isValid, buttonCheck, savedAddress, showModal]);
+
+    useEffect(() => {
+        headerRef.current = document.querySelector('header');
+
+        if (headerRef.current) {
+            const currentZIndex = getCurrentZIndex(headerRef.current);
+            if (currentZIndex === 0) {
+                headerRef.current.style.zIndex = '50';
+            }
+            originalHeaderZIndexRef.current = headerRef.current.style.zIndex || '50';
+        }
+
+        return () => {
+            if (showModal) {
+                if (headerRef.current) {
+                    headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+                }
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (showModal) {
+            document.body.classList.add('body-no-scroll');
+
+            if (headerRef.current && getCurrentZIndex(headerRef.current) >= 50) {
+                headerRef.current.style.zIndex = '0';
+            }
+
+        } else {
+            document.body.classList.remove('body-no-scroll');
+
+            if (headerRef.current && getCurrentZIndex(headerRef.current) === 0) {
+                headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+            }
+
+        }
+    }, [showModal]);
 
     // Получаем количество ТОЛЬКО для текущего продукта
     const count = useSelector((state: RootState) => {
@@ -44,6 +99,11 @@ export default function ProductsCard(props: ProductCardProps) {
     };
 
     const handleAddClick = () => {
+        if (!isValid || !buttonCheck || !savedAddress) {
+            setShowModal(true); // Показываем модальное окно с картой
+            return;
+        }
+
         dispatch(addToBasket({
             id: props.id, // Важно передавать уникальный id
             title: props.title,
@@ -59,9 +119,30 @@ export default function ProductsCard(props: ProductCardProps) {
         }
     };
 
+    function closeModal() {
+        setShowModal(false);
+    }
+
+
     if (props.stock !== 0) {
         return (
             <div className="product-card">
+                {/* Модальное окно справа */}
+                {showModal && (
+                    <div className="modal-overlay">
+                        <div className="right-modal">
+                            <button
+                                className="close-modal-button"
+                                onClick={closeModal}
+                            >
+                                ×
+                            </button>
+                            <div className="modal-content">
+                                <YandexMaps />
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <div className="product-card__image-block">
                     {props.image ? <img src={props.image} className="product-card__image" alt={props.title}/> :
                         <video

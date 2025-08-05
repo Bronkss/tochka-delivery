@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {Link} from 'react-router-dom';
 import gotovayaEdaImage from '../assets/navbar-images/gotovaya-eda.jpg';
-import vegetables from '../assets/navbar-images/ovoshi-i-fructi.jpg'
+import bailey from '../assets/navbar-images/bakaleya.jpg'
 
 export default function Navbar() {
     const [openCategory, setOpenCategory] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function Navbar() {
                     aria-hidden={openCategory !== 'gotovaya-eda'}
                 >
                     <li className="navbar__list__item">
-                        <Link to="/category/hot-dogs" className="navbar__list__link">Хот-доги</Link>
+                        <Link to="/category/pizzas" className="navbar__list__link">Пиццы</Link>
                     </li>
                     <li className="navbar__list__item">
                         <Link to="/category/burgers" className="navbar__list__link">Бургеры</Link>
@@ -44,34 +44,44 @@ export default function Navbar() {
                 </ul>
             </div>
 
-            {/* Блок "Овощи и фрукты" */}
+            {/* Блок "Бакалея" */}
             <div className="navbar__category">
                 <button
-                    className={`navbar__button ${openCategory === 'vegetables' ? 'active' : ''}`}
-                    aria-expanded={openCategory === 'vegetables'}
-                    aria-controls="vegetables-list"
-                    onClick={() => toggleMenu('vegetables')}
+                    className={`navbar__button ${openCategory === 'bailey' ? 'active' : ''}`}
+                    aria-expanded={openCategory === 'bailey'}
+                    aria-controls="bailey-list"
+                    onClick={() => toggleMenu('bailey')}
                 >
-                    {openCategory === 'vegetables' ? (
-                        <svg className="navbar__icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    {openCategory === 'bailey' ? (
+                        <svg className="navbar__icon" width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M19 9L12 16L5 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                                   strokeLinejoin="round"/>
                         </svg>
                     ) : (
-                        <img className="navbar__icon" src={vegetables} alt="Овощи и фрукты"/>
+                        <img className="navbar__icon" src={bailey} alt="Овощи и фрукты"/>
                     )}
-                    <span>Овощи и фрукты</span>
+                    <span>Бакалея</span>
                 </button>
                 <ul
-                    className={`navbar__list ${openCategory === 'vegetables' ? 'open' : ''}`}
-                    id="vegetables-list"
-                    aria-hidden={openCategory !== 'vegetables'}
+                    className={`navbar__list ${openCategory === 'bailey' ? 'open' : ''}`}
+                    id="bailey-list"
+                    aria-hidden={openCategory !== 'bailey'}
                 >
                     <li className="navbar__list__item">
-                        <Link to="/category/coffee" className="navbar__list__link">Овощи, грибы и зелень</Link>
+                        <Link to="/category/canned-food" className="navbar__list__link">Консервы</Link>
                     </li>
                     <li className="navbar__list__item">
-                        <Link to="/category/tea" className="navbar__list__link">Фрукты и ягоды</Link>
+                        <Link to="/category/tea" className="navbar__list__link">Кофе и какао</Link>
+                    </li>
+                    <li className="navbar__list__item">
+                        <Link to="/category/tea" className="navbar__list__link">Макароны, крупы и мука</Link>
+                    </li>
+                    <li className="navbar__list__item">
+                        <Link to="/category/tea" className="navbar__list__link">
+                            Масло, соусы и приправы</Link>
+                    </li>
+                    <li className="navbar__list__item">
+                        <Link to="/category/tea" className="navbar__list__link">Чай и сахар</Link>
                     </li>
                 </ul>
             </div>

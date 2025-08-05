@@ -1,4 +1,4 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useRef} from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import YandexMaps from "./YandexMaps.tsx";
@@ -7,18 +7,70 @@ export default function YandexMapsPreview() {
     const { value: savedAddress, isValid, buttonCheck } = useSelector((state: RootState) => state.address);
     const [showWarning, setShowWarning] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const headerRef = useRef<HTMLElement | null>(null);
+    const productsCardRef = useRef<HTMLElement | null>(null);
+    const originalHeaderZIndexRef = useRef<string>('');
+    const originalProductsZIndexRef = useRef<string>('');
 
+    const getCurrentZIndex = (element: HTMLElement): number => {
+        const zIndex = window.getComputedStyle(element).zIndex;
+        return zIndex === 'auto' ? 0 : parseInt(zIndex, 10);
+    };
+
+    useEffect(() => {
+        headerRef.current = document.querySelector('header');
+        productsCardRef.current = document.querySelector('.products-content'); // Изменил селектор
+
+        if (headerRef.current) {
+            const currentZIndex = getCurrentZIndex(headerRef.current);
+            if (currentZIndex === 0) {
+                headerRef.current.style.zIndex = '50';
+            }
+            originalHeaderZIndexRef.current = headerRef.current.style.zIndex || '50';
+        }
+
+        if (productsCardRef.current) {
+            const currentZIndex = getCurrentZIndex(productsCardRef.current);
+            if (currentZIndex === 0) {
+                productsCardRef.current.style.zIndex = '1'; // Исходное значение 0
+            }
+            originalProductsZIndexRef.current = productsCardRef.current.style.zIndex || '1';
+        }
+
+        return () => {
+            if (showModal) {
+                if (headerRef.current) {
+                    headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+                }
+                if (productsCardRef.current) {
+                    productsCardRef.current.style.zIndex = originalProductsZIndexRef.current;
+                }
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (showModal) {
             document.body.classList.add('body-no-scroll');
+
+            if (headerRef.current && getCurrentZIndex(headerRef.current) >= 50) {
+                headerRef.current.style.zIndex = '0';
+            }
+
+            if (productsCardRef.current) {
+                productsCardRef.current.style.zIndex = '-1'; // Устанавливаем -1 при открытии
+            }
         } else {
             document.body.classList.remove('body-no-scroll');
-        }
 
-        return () => {
-            document.body.classList.remove('body-no-scroll');
-        };
+            if (headerRef.current && getCurrentZIndex(headerRef.current) === 0) {
+                headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+            }
+
+            if (productsCardRef.current) {
+                productsCardRef.current.style.zIndex = originalProductsZIndexRef.current; // Возвращаем исходное значение
+            }
+        }
     }, [showModal]);
 
     // Если адрес корректен, валиден и подтверждён - то скрываем компонент.

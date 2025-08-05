@@ -2,6 +2,7 @@ import Header from './components/Header.tsx'
 import Navbar from "./components/Navbar.tsx";
 import MainContent from "./components/MainContent.tsx";
 import LocationBasketSwitcher from "./components/LocationBasketSwitcher.tsx";
+import Footer from "./components/Footer.tsx";
 
 
 function Home() {
@@ -11,6 +12,7 @@ function Home() {
             <Navbar />
             <MainContent />
             <LocationBasketSwitcher />
+            <Footer/>
         </>
     )
 }

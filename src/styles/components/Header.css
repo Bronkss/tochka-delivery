@@ -1,14 +1,17 @@
 .header {
     display: grid;
     grid-template-columns: 13% 1fr 20%;
-    align-items: center;
-    gap: 2rem;
-    height: auto;
-    background-color: var(--color-primary);
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: 50; /* Чтобы шапка была поверх других элементов */
+    background-color: var(--color-primary); /* Или ваш цвет фона */
+    padding: 1.2rem; /* Отступы по вашему вкусу */
+    height: 7rem;
     border-bottom-left-radius: 3.2rem;
     border-bottom-right-radius: 3.2rem;
-    padding: 1.2rem;
-    grid-column: 1 / -1;
+    gap: 2rem;
+
 }
 
 .header__logo {

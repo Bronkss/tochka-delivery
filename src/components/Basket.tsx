@@ -5,7 +5,8 @@ import {clearBasket, removeFromBasket} from '../app/basketSlice';
 import {useDispatch} from 'react-redux';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
 import defaultImage from "../assets/videos/defaultAnimation.mp4";
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
+import { useNavigate } from 'react-router-dom';
 
 interface BasketItemProps {
     item: {
@@ -48,6 +49,11 @@ interface OrderData {
     comments?: string;
 }
 
+interface OrderConfirmationState {
+    isConfirmed: boolean;
+    orderNumber?: string;
+}
+
 function BasketItem({item, onRemove}: BasketItemProps) {
     return (
         <li className="basket__item">
@@ -85,6 +91,7 @@ function BasketItem({item, onRemove}: BasketItemProps) {
 }
 
 export default function Basket() {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const address = useSelector((state: RootState) => state.address.value);
     const isValid = useSelector((state: RootState) => state.address.isValid);
@@ -101,6 +108,79 @@ export default function Basket() {
 
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const headerRef = useRef<HTMLElement | null>(null);
+    const productsCardRef = useRef<HTMLElement | null>(null);
+    const originalHeaderZIndexRef = useRef<string>('');
+    const originalProductsZIndexRef = useRef<string>('');
+    const [orderConfirmation, setOrderConfirmation] = useState<OrderConfirmationState>({
+        isConfirmed: false,
+        orderNumber: undefined
+    });
+
+    const generateOrderNumber = () => {
+        return `ORD-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    };
+
+    const getCurrentZIndex = (element: HTMLElement): number => {
+        const zIndex = window.getComputedStyle(element).zIndex;
+        return zIndex === 'auto' ? 0 : parseInt(zIndex, 10);
+    };
+
+    useEffect(() => {
+        headerRef.current = document.querySelector('header');
+        productsCardRef.current = document.querySelector('.products-content'); // Изменил селектор
+
+        if (headerRef.current) {
+            const currentZIndex = getCurrentZIndex(headerRef.current);
+            if (currentZIndex === 0) {
+                headerRef.current.style.zIndex = '50';
+            }
+            originalHeaderZIndexRef.current = headerRef.current.style.zIndex || '50';
+        }
+
+        if (productsCardRef.current) {
+            const currentZIndex = getCurrentZIndex(productsCardRef.current);
+            if (currentZIndex === 0) {
+                productsCardRef.current.style.zIndex = '1'; // Исходное значение 0
+            }
+            originalProductsZIndexRef.current = productsCardRef.current.style.zIndex || '1';
+        }
+
+        return () => {
+            if (showModal) {
+                if (headerRef.current) {
+                    headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+                }
+                if (productsCardRef.current) {
+                    productsCardRef.current.style.zIndex = originalProductsZIndexRef.current;
+                }
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (showModal || orderConfirmation.isConfirmed) {
+            document.body.classList.add('body-no-scroll');
+
+            if (headerRef.current && getCurrentZIndex(headerRef.current) >= 50) {
+                headerRef.current.style.zIndex = '0';
+            }
+
+            if (productsCardRef.current) {
+                productsCardRef.current.style.zIndex = '-1';
+            }
+        } else {
+            document.body.classList.remove('body-no-scroll');
+
+            if (headerRef.current && getCurrentZIndex(headerRef.current) === 0) {
+                headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+            }
+
+            if (productsCardRef.current) {
+                productsCardRef.current.style.zIndex = originalProductsZIndexRef.current;
+            }
+        }
+    }, [showModal, orderConfirmation.isConfirmed]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
@@ -203,12 +283,30 @@ export default function Basket() {
         setIsSubmitting(false);
 
         if (isSuccess) {
-            alert('Заказ успешно оформлен! С вами свяжутся для подтверждения.');
+            setOrderConfirmation({
+                isConfirmed: true,
+                orderNumber: generateOrderNumber()
+            });
             closeModal();
             dispatch(clearBasket())
         } else {
             alert('Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.');
         }
+    };
+
+    const handleReturnToMain = () => {
+        setOrderConfirmation({ isConfirmed: false });
+        setShowModal(false);
+        // Восстанавливаем z-index сразу при закрытии
+        if (headerRef.current) {
+            headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
+        }
+        if (productsCardRef.current) {
+            productsCardRef.current.style.zIndex = originalProductsZIndexRef.current;
+        }
+        document.body.classList.remove('body-no-scroll');
+
+        navigate('/'); // Раскомментируйте, если используете навигацию
     };
 
     return (
@@ -244,7 +342,7 @@ export default function Basket() {
                 )}
             </div>
 
-            {showModal && (
+            {showModal && !orderConfirmation.isConfirmed && (
                 <div className="modal-overlay__basket">
                     <div className="right-modal__basket">
                         <div className="modal-header">
@@ -381,6 +479,32 @@ export default function Basket() {
                                     </div>
                                 </form>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Новое модальное окно подтверждения заказа */}
+            {orderConfirmation.isConfirmed && (
+                <div className="modal-overlay__basket confirmation-modal">
+                    <div className="right-modal__basket">
+                        <div className="confirmation-content">
+                            <svg className="confirmation-icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
+                            </svg>
+                            <h2>Заказ принят!</h2>
+                            <p className="order-number">Номер заказа: {orderConfirmation.orderNumber}</p>
+                            <p className="confirmation-message">
+                                Ваш заказ отправлен в сборку.<br/>
+                                Курьер скоро приедет по адресу:
+                            </p>
+                            <p className="delivery-address">{address}</p>
+                            <button
+                                className="return-button"
+                                onClick={handleReturnToMain}
+                            >
+                                Вернуться на главную
+                            </button>
                         </div>
                     </div>
                 </div>
