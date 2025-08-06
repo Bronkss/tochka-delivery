@@ -2,6 +2,7 @@ import { useState, useEffect, useRef} from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../app/store';
 import YandexMaps from "./YandexMaps.tsx";
+import mapImage from '../assets/maps.png'
 
 export default function YandexMapsPreview() {
     const { value: savedAddress, isValid, buttonCheck } = useSelector((state: RootState) => state.address);
@@ -136,10 +137,7 @@ export default function YandexMapsPreview() {
                     </button>
                 </div>
             </div>
-            <iframe
-                src="https://yandex.ru/map-widget/v1/?um=constructor%3A2730706986e795b034721438b4988d3622fa7230b2792bfb0acfca6fb8adf7a3&amp;source=constructor"
-                title="Yandex Map"
-            />
+            <img src={mapImage} alt="фото карты" className="maps-image" onClick={handleClickFirstButton}/>
         </div>
     )
 }

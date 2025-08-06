@@ -77,3 +77,31 @@
     place-self: center;
     padding: 1.2rem;
 }
+
+@media (max-width: 1024px) {
+    .header {
+        grid-row: 3 / 4;
+        width: 100%;
+        position: sticky;
+        border-radius: 3.2rem 3.2rem 0 0;
+        display: flex;
+        gap: 0;
+        margin-top: 1rem;
+    }
+
+    .header__logo {
+        display: none;
+    }
+
+    .header__input-block {
+        flex: 1;
+    }
+
+    .header__button-block__auth {
+        display: none;
+    }
+
+    .header__button-block {
+        margin-left: 1rem;
+    }
+}

@@ -1,13 +1,20 @@
 import {useState} from "react";
-import {Link} from 'react-router-dom';
+import {Link, useLocation} from 'react-router-dom';
 import gotovayaEdaImage from '../assets/navbar-images/gotovaya-eda.jpg';
 import bailey from '../assets/navbar-images/bakaleya.jpg'
 
 export default function Navbar() {
     const [openCategory, setOpenCategory] = useState<string | null>(null);
+    const location = useLocation();
+    const isHomePage = location.pathname === '/';
+    const isMobileView = window.innerWidth <= 1024;
 
     function toggleMenu(category: string) {
         setOpenCategory(prev => prev === category ? null : category);
+    }
+
+    if (isMobileView && !isHomePage) {
+        return null
     }
 
     return (

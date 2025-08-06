@@ -73,3 +73,30 @@
     padding-left: 0.5rem;
     font-weight: bold;
 }
+
+.ymaps3x0--map-container {
+    border-radius: 3.2rem;
+}
+
+.ymaps3--suggest-control {
+    height: 50vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+    .hint {
+        width: 80%;
+    }
+
+    .hint span {
+        font-size: 1rem;
+    }
+
+    .ymaps3--search-control {
+    }
+
+    .ymaps3--search-control__form {
+        width: 60%;
+        margin: 0 auto;
+    }
+}

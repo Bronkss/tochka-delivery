@@ -24,3 +24,12 @@
     gap: 1rem;
     align-items: start;
 }
+
+@media (max-width: 1024px) {
+    .products-content {
+        grid-row: 4 / 5;
+        grid-column: 1 / 4;
+        margin: 0;
+        border-radius: 0 0 3.2rem 3.2rem;
+    }
+}

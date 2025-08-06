@@ -7,3 +7,14 @@
     border-radius: 3.2rem;
     background-color: var(--color-primary);
 }
+
+@media (max-width: 1024px) {
+    .location-basket-switcher {
+        grid-column: 1 / 4;
+        grid-row: 1 / 2;
+        position: static;
+        height: 11rem;
+        z-index: 10;
+        border-radius: 0 0 3.2rem 3.2rem;
+    }
+}

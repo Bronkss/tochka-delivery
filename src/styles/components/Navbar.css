@@ -79,3 +79,15 @@
 .navbar__list__link:hover {
     color: var(--color-total-black);
 }
+
+@media (max-width: 1024px) {
+    .navbar {
+        width: 100%;
+        height: 50vh;
+        border-radius: 3.2rem 3.2rem 0 0;
+        grid-column: 1 / 4;
+        position: static;
+        grid-row: 2 / 3;
+        background-color: var(--color-grey4);
+    }
+}
