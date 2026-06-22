@@ -1,191 +1,157 @@
-import {useDispatch, useSelector} from 'react-redux';
-import type {RootState} from '../app/store';
-import {addToBasket, removeFromBasket} from '../app/basketSlice';
+import { useDispatch, useSelector } from 'react-redux';
+
+import type { AppDispatch, RootState } from '../app/store';
+import { addToBasket, removeFromBasket } from '../app/basketSlice';
+
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
-import defaultImage from '../../public/videos/defaultAnimation.mp4'
-import {useEffect, useRef, useState} from "react";
+import defaultImage from '../../public/videos/defaultAnimation.mp4';
 
-interface ProductCardProps {
-    id: string;
-    title: string;
-    image: string; // URL изображения
-    weight: number; // Теперь число (вес в граммах)
-    price: number; // Цена без копеек
-    salePrices?: Array<{ // Добавляем опциональное поле для цен
-        value: number;
-        priceType?: {
-            name: string;
-        };
-    }>;
-    stock: number;
+type ProductLike = {
+    id?: string | number;
+    title?: string;
+    name?: string;
+    price?: number;
+    image?: string;
+    imageUrl?: string;
+    weight?: string | number | null;
+};
+
+type ProductCardProps = ProductLike & {
+    product?: ProductLike;
+};
+
+function normalizeText(value: unknown): string {
+    if (value === null || value === undefined) return '';
+
+    const text = String(value).trim();
+
+    if (!text || text === '0' || text.toLowerCase() === 'null') {
+        return '';
+    }
+
+    return text;
 }
 
-export default function ProductsCard(props: ProductCardProps) {
-    const dispatch = useDispatch();
-    const { value: savedAddress, isValid, buttonCheck } = useSelector((state: RootState) => state.address);
-    const [showModal, setShowModal] = useState(false);
-    const headerRef = useRef<HTMLElement | null>(null);
-    const originalHeaderZIndexRef = useRef<string>('');
+function normalizePrice(value: unknown): number {
+    const price = Number(value);
 
-    const getCurrentZIndex = (element: HTMLElement): number => {
-        const zIndex = window.getComputedStyle(element).zIndex;
-        return zIndex === 'auto' ? 0 : parseInt(zIndex, 10);
-    };
-
-    useEffect(() => {
-        if (showModal && isValid && buttonCheck && savedAddress) {
-            setShowModal(false);
-        }
-    }, [isValid, buttonCheck, savedAddress, showModal]);
-
-    useEffect(() => {
-        headerRef.current = document.querySelector('header');
-
-        if (headerRef.current) {
-            const currentZIndex = getCurrentZIndex(headerRef.current);
-            if (currentZIndex === 0) {
-                headerRef.current.style.zIndex = '50';
-            }
-            originalHeaderZIndexRef.current = headerRef.current.style.zIndex || '50';
-        }
-
-        return () => {
-            if (showModal) {
-                if (headerRef.current) {
-                    headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
-                }
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (showModal) {
-            document.body.classList.add('body-no-scroll');
-
-            if (headerRef.current && getCurrentZIndex(headerRef.current) >= 50) {
-                headerRef.current.style.zIndex = '0';
-            }
-
-        } else {
-            document.body.classList.remove('body-no-scroll');
-
-            if (headerRef.current && getCurrentZIndex(headerRef.current) === 0) {
-                headerRef.current.style.zIndex = originalHeaderZIndexRef.current;
-            }
-
-        }
-    }, [showModal]);
-
-    // Получаем количество ТОЛЬКО для текущего продукта
-    const count = useSelector((state: RootState) => {
-        const item = state.basket.items.find(item => item.title === props.title);
-        return item ? item.quantity : 0;
-    });
-
-    // Функция для получения основной цены
-    const getMainPrice = () => {
-        if (props.price) return props.price / 100;
-        if (props.salePrices?.length) {
-            const mainPrice = props.salePrices.find(p => p.priceType?.name === 'Цена продажи');
-            return mainPrice ? Math.floor(mainPrice.value) : Math.floor(props.salePrices[0].value);
-        }
+    if (!Number.isFinite(price) || price < 0) {
         return 0;
-    };
-
-    const formatWeight = (weight: number) => {
-        return `${weight} г`;
-    };
-
-    const handleAddClick = () => {
-        if (!isValid || !buttonCheck || !savedAddress) {
-            setShowModal(true); // Показываем модальное окно с картой
-            return;
-        }
-
-        dispatch(addToBasket({
-            id: props.id, // Важно передавать уникальный id
-            title: props.title,
-            image: props.image,
-            weight: formatWeight(props.weight || 0), // Форматируем вес
-            price: getMainPrice() // Используем вычисленную цену
-        }));
-    };
-
-    const handleRemoveClick = () => {
-        if (count > 0) {
-            dispatch(removeFromBasket(props.title)); // Удаляем по id
-        }
-    };
-
-    function closeModal() {
-        setShowModal(false);
     }
 
+    return price;
+}
 
-    if (props.stock !== 0) {
-        return (
-            <div className="product-card">
-                {/* Модальное окно справа */}
-                {showModal && (
-                    <div className="modal-overlay">
-                        <div className="right-modal">
-                            <button
-                                className="close-modal-button"
-                                onClick={closeModal}
-                            >
-                                ×
-                            </button>
-                            <div className="modal-content">
-                                // карты сюда
-                            </div>
-                        </div>
+export default function ProductCard(props: ProductCardProps) {
+    const dispatch = useDispatch<AppDispatch>();
+
+    const source = props.product ?? props;
+
+    const title = normalizeText(source.title ?? source.name) || 'Товар';
+    const id = String(source.id ?? title);
+    const price = normalizePrice(source.price);
+    const image = normalizeText(source.image ?? source.imageUrl);
+    const weight = normalizeText(source.weight);
+
+    const basketItem = useSelector((state: RootState) =>
+        state.basket.items.find(item => item.id === id)
+    );
+
+    const quantity = basketItem?.quantity ?? 0;
+
+    const handleAdd = () => {
+        dispatch(
+            addToBasket({
+                id,
+                title,
+                price,
+                image: image || undefined,
+                weight,
+            })
+        );
+    };
+
+    const handleRemove = () => {
+        dispatch(removeFromBasket(id));
+    };
+
+    return (
+        <article className="product-card">
+            <div className="product-card__image-block">
+                {image ? (
+                    <img
+                        src={image}
+                        alt={title}
+                        className="product-card__image"
+                        loading="lazy"
+                    />
+                ) : (
+                    <video
+                        className="product-card__default"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                    >
+                        <source src={defaultImage} type="video/mp4" />
+                    </video>
+                )}
+
+                {quantity > 0 && (
+                    <div className="product-card__count">
+                        {quantity}
                     </div>
                 )}
-                <div className="product-card__image-block">
-                    {props.image ? <img src={props.image} className="product-card__image" alt={props.title}/> :
-                        <video
-                            className="product-card__default"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                        >
-                            <source src={defaultImage} type="video/mp4"/>
-                        </video>}
-                    {count !== 0 && (
-                        <span className="count">{count}</span>
-                    )}
-                    {count == props.stock && (<span className="count-null">Больше нет</span>)}
-                </div>
-                <h3 className="products-card__title">{props.title}</h3>
-                {props.weight && (
-                    <span className="product-card__weight">{formatWeight(props.weight)}</span>
-                )}
-                <div className="product-card__pay">
-                    <span className="product-card__pay__price">{getMainPrice()}&nbsp;₽</span>
-                    {count > 0 ? (
-                        <button
-                            className="product-card__quantity-btn"
-                            onClick={handleRemoveClick}
-                            aria-label="Уменьшить количество"
-                        >
-                            <img src={removeIcon} alt=""/>
-                        </button>
-
-                    ) : null}
-                    {count < props.stock ? (
-                        <button
-                            className="product-card__pay__add-to-basket"
-                            onClick={handleAddClick}
-                            aria-label="Добавить в корзину"
-                        >
-                            <img src={addIcon} alt=""/>
-                        </button>
-                    ) : null}
-
-                </div>
             </div>
-        );
-    }
+
+            <div className="product-card__content">
+                <h3 className="product-card__title">
+                    {title}
+                </h3>
+
+                {weight && (
+                    <span className="product-card__weight">
+                        {weight}
+                    </span>
+                )}
+
+                {quantity > 0 ? (
+                    <div className="product-card__controls">
+                        <button
+                            type="button"
+                            className="product-card__round-button"
+                            onClick={handleRemove}
+                            aria-label={`Убрать ${title}`}
+                        >
+                            <img src={removeIcon} alt="" />
+                        </button>
+
+                        <span className="product-card__price">
+                            {price} ₽
+                        </span>
+
+                        <button
+                            type="button"
+                            className="product-card__round-button"
+                            onClick={handleAdd}
+                            aria-label={`Добавить ${title}`}
+                        >
+                            <img src={addIcon} alt="" />
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        className="product-card__buy-button"
+                        onClick={handleAdd}
+                        aria-label={`Добавить ${title} в корзину`}
+                    >
+                        <span>{price} ₽</span>
+                        <img src={addIcon} alt="" />
+                    </button>
+                )}
+            </div>
+        </article>
+    );
 }

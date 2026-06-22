@@ -1,93 +1,140 @@
 .navbar {
     grid-area: nav;
-    align-self: start;
-    position: sticky;
-    top: 8rem; /* Высота шапки + небольшой отступ */
-    height: calc(95vh - 8rem); /* Высота минус высота шапки */
-    padding: 1.5rem;
-    border-radius: 3.2rem;
-    background-color: var(--color-primary);
-    overflow-y: auto;
-}
 
-.navbar__category {
-    position: relative;
-    margin-bottom: 1rem;
-}
-
-.navbar__button {
-    display: flex;
     width: 100%;
-    align-items: center;
-    gap: 1rem;
-    font-size: 1.4rem;
-    background-color: transparent;
-    padding: 1rem;
+    height: 100%;
+    min-height: 0;
+
+    margin-top: 1rem;
+    padding: 2rem 1.6rem;
+    box-sizing: border-box;
+
+    background: var(--color-primary);
     border-radius: 3.2rem;
-    font-weight: bold;
-    color: var(--color-grey3);
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
 
-.navbar__button span {
-    text-align: left;
-    line-height: 1.8rem;
-}
-
-.navbar__button:hover {
-    color: var(--color-total-black);
-}
-
-.navbar__icon {
-    width: 3.4rem;
-    height: 3.4rem;
-    object-fit: cover;
-    transition: all 0.3s ease;
-    border-radius: 50%;
-}
-
-.navbar__list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
 }
 
-.navbar__list.open {
-    max-height: 500px;
-    padding: 0.5rem 0;
+.navbar__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+
+    height: 100%;
+    min-height: 0;
 }
 
-.navbar__list__item {
-    padding: 0.5rem 1rem;
-    transition: background-color 0.2s ease;
-}
+.navbar__title {
+    flex: 0 0 auto;
 
-.navbar__list__link {
-    display: block;
-    text-decoration: none;
+    margin: 0;
+    padding: 0 1rem;
+
+    font-size: 1.8rem;
+    font-weight: 800;
     color: var(--color-black);
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
-    font-size: 1.2rem;
 }
 
-.navbar__list__link:hover {
-    color: var(--color-total-black);
+.navbar__links {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-right: 0.4rem;
+}
+
+.navbar__links::-webkit-scrollbar {
+    width: 0.6rem;
+}
+
+.navbar__links::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.navbar__links::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 999px;
+}
+
+.navbar__links::-webkit-scrollbar-thumb:hover {
+    background: #939393;
+}
+
+.navbar__link {
+    display: block;
+
+    width: 100%;
+    padding: 1rem 1.2rem;
+    box-sizing: border-box;
+
+    border-radius: 1.4rem;
+    background: transparent;
+
+    color: var(--color-black);
+    text-decoration: none;
+
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.25;
+
+    transition:
+            background 0.15s ease,
+            color 0.15s ease;
+}
+
+.navbar__link:hover {
+    background: var(--color-grey4);
+}
+
+.navbar__link.active {
+    background: var(--color-grey4);
+    color: var(--color-black);
+    font-weight: 900;
+}
+
+.navbar__status {
+    flex: 0 0 auto;
+    padding: 0 1rem;
+    font-size: 1.4rem;
+    color: var(--color-grey);
 }
 
 @media (max-width: 1024px) {
     .navbar {
-        width: 100%;
-        height: 50vh;
-        border-radius: 3.2rem 3.2rem 0 0;
-        grid-column: 1 / 4;
-        position: static;
-        grid-row: 2 / 3;
-        background-color: var(--color-grey4);
+        grid-area: nav;
+        height: auto;
+        max-height: none;
+        margin: 0;
+        border-radius: 0;
+        overflow: hidden;
+        padding: 1rem;
+    }
+
+    .navbar__inner {
+        height: auto;
+    }
+
+    .navbar__title {
+        display: none;
+    }
+
+    .navbar__links {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding-right: 0;
+        padding-bottom: 0.4rem;
+    }
+
+    .navbar__link {
+        width: auto;
+        flex: 0 0 auto;
     }
 }

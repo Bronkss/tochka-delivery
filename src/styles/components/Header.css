@@ -15,10 +15,11 @@
 }
 
 .header__logo {
-    max-width: 15rem;
+    position: absolute;
+    top: -2.5rem;
+    max-width: 20rem;
     width: 100%;
-    object-fit: cover;
-    padding-left: 2rem;
+    object-fit: contain;
 }
 
 .header__logo__link {

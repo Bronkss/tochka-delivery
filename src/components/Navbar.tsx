@@ -9,7 +9,6 @@ interface Category {
 }
 
 export default function Navbar() {
-    const [openCategory, setOpenCategory] = useState<string | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -17,10 +16,6 @@ export default function Navbar() {
     const location = useLocation();
     const isHomePage = location.pathname === "/";
     const isMobileView = window.innerWidth <= 1024;
-
-    function toggleMenu(category: string) {
-        setOpenCategory(prev => prev === category ? null : category);
-    }
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -35,6 +30,8 @@ export default function Navbar() {
                 }
 
                 const data: Category[] = await response.json();
+
+                console.log("Категории в Navbar:", data);
 
                 setCategories(data);
             } catch (error) {
@@ -54,58 +51,24 @@ export default function Navbar() {
 
     return (
         <nav className="navbar">
-            <div className="navbar__category">
-                <button
-                    className={`navbar__button ${openCategory === "categories" ? "active" : ""}`}
-                    aria-expanded={openCategory === "categories"}
-                    aria-controls="categories-list"
-                    onClick={() => toggleMenu("categories")}
-                >
-                    {openCategory === "categories" ? (
-                        <svg className="navbar__icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                            <path
-                                d="M19 9L12 16L5 9"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                    ) : (
-                        <span className="navbar__icon">☰</span>
-                    )}
+            <div className="navbar__inner">
+                <span className="navbar__title">Категории</span>
 
-                    <span>Категории</span>
-                </button>
+                <div className="navbar__links">
+                    {isLoading && <span className="navbar__status">Загрузка...</span>}
 
-                <ul
-                    className={`navbar__list ${openCategory === "categories" ? "open" : ""}`}
-                    id="categories-list"
-                    aria-hidden={openCategory !== "categories"}
-                >
-                    {isLoading && (
-                        <li className="navbar__list__item">
-                            <span className="navbar__list__link">Загрузка...</span>
-                        </li>
-                    )}
+                    {error && <span className="navbar__status">{error}</span>}
 
-                    {error && (
-                        <li className="navbar__list__item">
-                            <span className="navbar__list__link">{error}</span>
-                        </li>
-                    )}
-
-                    {!isLoading && !error && categories.map(category => (
-                        <li key={category.id} className="navbar__list__item">
-                            <Link
-                                to={`/category/${encodeURIComponent(category.name)}`}
-                                className="navbar__list__link"
-                            >
-                                {category.name}
-                            </Link>
-                        </li>
+                    {!isLoading && !error && categories.map((category) => (
+                        <Link
+                            key={category.id}
+                            to={`/category/${encodeURIComponent(category.name)}`}
+                            className="navbar__link"
+                        >
+                            {category.name}
+                        </Link>
                     ))}
-                </ul>
+                </div>
             </div>
         </nav>
     );

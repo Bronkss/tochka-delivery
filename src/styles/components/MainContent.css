@@ -1,23 +1,31 @@
 .main-content {
     grid-area: main;
-    padding: 1.5rem;
-    height: auto;
+
+    height: 100%;
+    min-height: 0;
+
     margin-top: 1rem;
-    min-height: calc(100vh - 8rem); /* Минимальная высота минус высота шапки */
+    padding: 1.5rem;
+    box-sizing: border-box;
+
     border-radius: 3.2rem;
     background-color: var(--color-primary);
-    overflow-y: auto; /* Скролл только внутри основного контента */
+
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .main-content__title {
     font-size: 3.8rem;
+    line-height: 1.15;
 }
 
 .main-content h2 {
-    font-size: 2.8rem;
-    margin-bottom: 1.5rem;
-    grid-column: 1 / -1;
     width: 100%;
+    margin-bottom: 1.5rem;
+    font-size: 2.8rem;
+    line-height: 1.2;
+    grid-column: 1 / -1;
 }
 
 .main-content__title span {
@@ -33,37 +41,36 @@
 .main-content__category__gotovaya-eda,
 .main-content__category__vegetables {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
     gap: 1.5rem;
     align-items: start;
 }
 
-/* Стили для scroll-bar */
-
 .main-content::-webkit-scrollbar {
-    width: 8px;                       /* Ширина скроллбара */
+    width: 8px;
 }
 
 .main-content::-webkit-scrollbar-track {
-    background: transparent;          /* Цвет трека */
-    border-radius: 4px;
+    background: transparent;
 }
 
 .main-content::-webkit-scrollbar-thumb {
-    background: #d4d4d4;             /* Цвет ползунка */
-    border-radius: 4px;
+    background: #d4d4d4;
+    border-radius: 999px;
 }
 
 .main-content::-webkit-scrollbar-thumb:hover {
-    background: #939393;             /* Цвет при наведении */
+    background: #939393;
 }
 
 @media (max-width: 1024px) {
     .main-content {
-        grid-row: 4 / 5;
-        grid-column: 1 / 4;
+        grid-area: main;
+        height: auto;
+        min-height: 50rem;
         margin: 0;
         border-radius: 0 0 3.2rem 3.2rem;
+        overflow: visible;
     }
 }
 

@@ -1,15 +1,13 @@
-import Basket from "./Basket.tsx";
-// навигация по карте сюда
-
+import Basket from './Basket';
+import AddressMapPicker from './Map';
 
 function LocationBasketSwitcher() {
     return (
-        <>
-            <div className="location-basket-switcher">
-                <Basket />
-            </div>
-        </>
-    )
+        <aside className="location-basket-switcher">
+            <AddressMapPicker />
+            <Basket />
+        </aside>
+    );
 }
 
 export default LocationBasketSwitcher;

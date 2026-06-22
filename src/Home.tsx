@@ -12,7 +12,6 @@ function Home() {
             <Navbar />
             <MainContent />
             <LocationBasketSwitcher />
-            <Footer/>
         </>
     )
 }

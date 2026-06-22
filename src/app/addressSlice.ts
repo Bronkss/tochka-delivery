@@ -18,17 +18,21 @@ const addressSlice = createSlice({
     initialState,
     reducers: {
         setAddress: (state, action: PayloadAction<string>) => {
-            state.value = action.payload;
-            const pattern = /^село Николаевка,.+$/;
-            state.isValid = pattern.test(action.payload.trim());
+            const value = action.payload.trim();
+
+            state.value = value;
+            state.isValid = value.length >= 5;
         },
+
         clearAddress: (state) => {
             state.value = '';
             state.isValid = false;
+            state.buttonCheck = false;
         },
+
         setButtonCheck: (state, action: PayloadAction<boolean>) => {
-            state.buttonCheck = action.payload; // Устанавливаем конкретное значение
-        }
+            state.buttonCheck = action.payload;
+        },
     },
 });
 
