@@ -4,7 +4,7 @@ import deliveryManIcon from '../assets/delivery-man-icon.png';
 import {clearBasket, removeFromBasket} from '../app/basketSlice';
 import {useDispatch} from 'react-redux';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
-import defaultImage from "../assets/videos/defaultAnimation.mp4";
+import defaultImage from "../../public/videos/defaultAnimation.mp4";
 import {useEffect, useRef, useState} from "react";
 import { useNavigate } from 'react-router-dom';
 import basketIcon from '../assets/icons/basket-icon.png'
