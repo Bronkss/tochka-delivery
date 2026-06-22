@@ -1,32 +1,42 @@
-import Header from "../../../components/Header.tsx";
-import Navbar from "../../../components/Navbar.tsx";
-import LocationBasketSwitcher from "../../../components/LocationBasketSwitcher.tsx";
-import ProductsContent from "../../../components/ProductsContent.tsx";
-import ProductsCard from "../../../components/ProductsCard.tsx";
-import type { Product } from "../../../types/product.ts";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-export default function Pizzas() {
+import Header from "../components/Header.tsx";
+import Navbar from "../components/Navbar.tsx";
+import LocationBasketSwitcher from "../components/LocationBasketSwitcher.tsx";
+import ProductsContent from "../components/ProductsContent.tsx";
+import ProductsCard from "../components/ProductsCard.tsx";
+
+import type { Product } from "../types/product.ts";
+
+export default function CategoryPages() {
+    const { categoryId } = useParams<{ categoryId: string }>();
+
+    const categoryName = categoryId
+        ? decodeURIComponent(categoryId)
+        : "";
+
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!categoryName) return;
+
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
                 setError(null);
 
-                const response = await fetch("/api/products");
+                const response = await fetch(
+                    `/api/categories/${encodeURIComponent(categoryName)}/products`
+                );
 
                 if (!response.ok) {
                     throw new Error("Не удалось загрузить товары");
                 }
 
                 const data: Product[] = await response.json();
-
-                console.log("Товары с backend:", data);
-                console.log("Категории:", data.map(product => product.category));
 
                 setProducts(data);
             } catch (error) {
@@ -38,7 +48,7 @@ export default function Pizzas() {
         };
 
         fetchProducts();
-    }, []);
+    }, [categoryName]);
 
     return (
         <>
@@ -46,13 +56,13 @@ export default function Pizzas() {
             <Navbar />
             <LocationBasketSwitcher />
 
-            <ProductsContent title="Пиццы">
+            <ProductsContent title={categoryName}>
                 {isLoading && <p>Загрузка товаров...</p>}
 
                 {error && <p>{error}</p>}
 
                 {!isLoading && !error && products.length === 0 && (
-                    <p>Товары не найдены</p>
+                    <p>Товары в этой категории не найдены</p>
                 )}
 
                 {!isLoading && !error && products.map(product => (

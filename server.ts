@@ -1,11 +1,13 @@
-// import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
-import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { Pool } from 'pg';
 import cors from 'cors';
 
 dotenv.config();
+
+console.log('=== ЗАПУЩЕН НОВЫЙ SERVER.TS С NEON ===');
+console.log('CWD:', process.cwd());
+console.log('DATABASE_URL EXISTS:', Boolean(process.env.DATABASE_URL));
 
 const app = express();
 
@@ -15,163 +17,121 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(bodyParser.json());
+app.use(express.json({ limit: '50mb' }));
+
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+    throw new Error('DATABASE_URL не задан в .env');
+}
 
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT || 5432),
-    database: process.env.DB_NAME || 'warehouse_db',
-    user: process.env.DB_USER || 'warehouse_user',
-    password: process.env.DB_PASSWORD || 'warehouse_password',
+    connectionString: databaseUrl,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 type ProductUnit = 'piece' | 'weight';
 
-interface ProductRow {
+interface ProductDbRow {
+    id: number | string;
+    name?: string | null;
+    category?: string | null;
+    barcode?: string | null;
+    purchase_price?: number | string | null;
+    selling_price?: number | string | null;
+    min_stock?: number | string | null;
+    purchasePrice?: number | string | null;
+    sellingPrice?: number | string | null;
+    minStock?: number | string | null;
+    unit?: ProductUnit | string | null;
+    stock?: number | string | null;
+    image?: string | null;
+}
+
+interface ProductResponse {
+    id: number;
+    name: string;
+    category: string;
+    barcode: string;
+    purchasePrice: number;
+    sellingPrice: number;
+    unit: ProductUnit;
+    stock: number;
+    minStock: number;
+    image: string;
+}
+
+interface CountRow {
+    count: string;
+}
+
+interface DebugDbInfoRow {
+    database: string;
+    user: string;
+    host: string | null;
+    port: number;
+}
+
+interface CategoryCountRow {
+    category: string | null;
+    count: string;
+}
+
+interface CategoryRow {
+    id: string;
+    name: string;
+    image: string | null;
+    products_count: string;
+}
+
+interface ProductPreviewRow {
     id: number;
     name: string;
     category: string;
     barcode: string;
     purchase_price: string;
     selling_price: string;
-    unit: ProductUnit;
+    unit: string;
     stock: string;
     min_stock: string;
-    image: string;
+    image_preview: string | null;
 }
 
-function mapProduct(row: ProductRow) {
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function toProductUnit(value: unknown): ProductUnit {
+    return value === 'weight' ? 'weight' : 'piece';
+}
+
+function mapProduct(row: ProductDbRow): ProductResponse {
     return {
-        id: row.id,
-        name: row.name,
-        category: row.category,
-        barcode: row.barcode,
-        purchasePrice: Number(row.purchase_price),
-        sellingPrice: Number(row.selling_price),
-        unit: row.unit,
-        stock: Number(row.stock),
-        minStock: Number(row.min_stock),
-        image: row.image,
+        id: Number(row.id),
+        name: row.name || '',
+        category: row.category || '',
+        barcode: row.barcode || '',
+        purchasePrice: Number(row.purchase_price ?? row.purchasePrice ?? 0),
+        sellingPrice: Number(row.selling_price ?? row.sellingPrice ?? 0),
+        unit: toProductUnit(row.unit),
+        stock: Number(row.stock ?? 0),
+        minStock: Number(row.min_stock ?? row.minStock ?? 0),
+        image: row.image || '',
     };
 }
 
-// // Конфигурация бота
-// const TOKEN = '8202147518:AAEcqKab3RS-SvBq8YpDNE51ySsvvoQuEGQ';
-// const CHAT_ID = 598348966; // Ваш chat_id
-// const CHAT_DELIVERYMAN_ID = 7087767283;
-//
-// // Инициализация бота с улучшенными настройками
-// const bot = new TelegramBot(TOKEN, {
-//     polling: false, // Отключаем polling, так как используем только отправку сообщений
-//     request: {
-//         timeout: 10000, // Увеличиваем таймаут
-//         agent: null,
-//     },
-// });
-//
-// // Мидлвар для логирования запросов
-// app.use((req, res, next) => {
-//     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-//     next();
-// });
-//
-// // Эндпоинт для отправки заказов
-// app.post('/send-order', async (req, res) => {
-//     console.log('Получен заказ:', JSON.stringify(req.body, null, 2));
-//
-//     try {
-//         // Валидация входящих данных
-//         if (!req.body || !req.body.items || !req.body.customer) {
-//             throw new Error('Неверный формат данных заказа');
-//         }
-//
-//         const { customer, items, address, total, paymentMethod, comments } = req.body;
-//
-//         // Формируем сообщение для админов
-//         const adminMessage = `📦 <b>Новый заказ!</b>\n\n` +
-//             `👤 <b>Клиент:</b> ${customer.name}\n` +
-//             `📞 <b>Телефон:</b> ${customer.phone}\n` +
-//             `🏠 <b>Адрес:</b> ${address}\n` +
-//             (customer.apartment ? `🚪 <b>Квартира/офис:</b> ${customer.apartment}\n\n` : '\n') +
-//             `🛒 <b>Заказ:</b>\n${items.map(item =>
-//                 `- ${item.title} (${item.quantity} × ${item.price}₽) = ${item.quantity * item.price}₽`
-//             ).join('\n')}\n\n` +
-//             `💰 <b>Итого:</b> ${total}₽\n` +
-//             `💳 <b>Способ оплаты:</b> ${paymentMethod === 'cash' ? 'Наличные' : 'Карта'}\n` +
-//             (comments ? `\n📝 <b>Комментарий:</b> ${comments}` : '');
-//
-//         // Формируем сообщение для курьера (более краткое)
-//         const deliveryMessage = `🚴 <b>Новый заказ для доставки!</b>\n\n` +
-//             `👤 ${customer.name}\n` +
-//             `📞 ${customer.phone}\n` +
-//             `🏠 ${address}${customer.apartment ? `, кв. ${customer.apartment}` : ''}\n\n` +
-//             `🛍️ ${items.length} позиций на сумму ${total}₽\n` +
-//             `💳 ${paymentMethod === 'cash' ? 'Наличные' : 'Карта'}`;
-//
-//         console.log('Формируем сообщения для Telegram:');
-//         console.log('Для админов:', adminMessage);
-//         console.log('Для курьера:', deliveryMessage);
-//
-//         // Функция для отправки с повторными попытками
-//         const sendWithRetry = async (chatId: number, message: string) => {
-//             let attempts = 3;
-//             let lastError = null;
-//
-//             while (attempts > 0) {
-//                 try {
-//                     const sentMessage = await bot.sendMessage(chatId, message, {
-//                         parse_mode: 'HTML',
-//                         disable_web_page_preview: true,
-//                     });
-//                     return sentMessage;
-//                 } catch (error) {
-//                     attempts--;
-//                     lastError = error;
-//                     console.error(`Ошибка отправки в чат ${chatId} (попытка ${4 - attempts}):`, error);
-//                     if (attempts > 0) await new Promise(resolve => setTimeout(resolve, 1000));
-//                 }
-//             }
-//             throw lastError || new Error(`Не удалось отправить сообщение в чат ${chatId}`);
-//         };
-//
-//         // Отправляем в оба чата параллельно
-//         const [adminResult, deliverymanResult] = await Promise.all([
-//             sendWithRetry(CHAT_ID, adminMessage),
-//             sendWithRetry(CHAT_DELIVERYMAN_ID, deliveryMessage),
-//         ]);
-//
-//         console.log('Сообщения успешно отправлены:', {
-//             adminChat: adminResult.message_id,
-//             deliverymanChat: deliverymanResult.message_id,
-//         });
-//
-//         return res.json({
-//             success: true,
-//             message: 'Заказ успешно отправлен администратору и курьеру',
-//             messageIds: {
-//                 admin: adminResult.message_id,
-//                 deliveryman: deliverymanResult.message_id,
-//             }
-//         });
-//
-//     } catch (error) {
-//         console.error('Финальная ошибка обработки заказа:', error);
-//
-//         const errorResponse = {
-//             success: false,
-//             error: error.message,
-//             details: {
-//                 code: error.code,
-//                 response: error.response?.body,
-//                 stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-//             },
-//         };
-//
-//         res.status(500).json(errorResponse);
-//     }
-// });
+app.get('/api/whoami', (_req, res) => {
+    res.json({
+        server: 'new-server-ts-neon-version',
+        time: new Date().toISOString(),
+        databaseUrlExists: Boolean(process.env.DATABASE_URL),
+        cwd: process.cwd(),
+    });
+});
 
-app.get('/api/health', async (req, res) => {
+app.get('/api/health', async (_req, res) => {
     try {
         const result = await pool.query('SELECT NOW()');
 
@@ -180,18 +140,76 @@ app.get('/api/health', async (req, res) => {
             time: result.rows[0].now,
         });
     } catch (error) {
-        console.error('Ошибка подключения к БД:', error);
+        console.error('GET /api/health error:', error);
 
         res.status(500).json({
             message: 'Ошибка подключения к БД',
+            error: getErrorMessage(error),
         });
     }
 });
 
-app.get('/api/products', async (req, res) => {
+app.get('/api/debug/db', async (_req, res) => {
     try {
-        const result = await pool.query<ProductRow>(`
+        const dbInfo = await pool.query<DebugDbInfoRow>(`
             SELECT 
+                current_database() AS database,
+                current_user AS user,
+                inet_server_addr() AS host,
+                inet_server_port() AS port
+        `);
+
+        const productsCount = await pool.query<CountRow>(`
+            SELECT COUNT(*) AS count
+            FROM products
+        `);
+
+        const categoriesCount = await pool.query<CategoryCountRow>(`
+            SELECT 
+                category,
+                COUNT(*) AS count
+            FROM products
+            GROUP BY category
+            ORDER BY COUNT(*) DESC
+        `);
+
+        const sampleProducts = await pool.query<ProductPreviewRow>(`
+            SELECT
+                id,
+                name,
+                category,
+                barcode,
+                purchase_price,
+                selling_price,
+                unit,
+                stock,
+                min_stock,
+                LEFT(image, 80) AS image_preview
+            FROM products
+            ORDER BY id DESC
+            LIMIT 5
+        `);
+
+        res.json({
+            db: dbInfo.rows[0],
+            productsCount: Number(productsCount.rows[0].count),
+            categories: categoriesCount.rows,
+            sampleProducts: sampleProducts.rows,
+        });
+    } catch (error) {
+        console.error('GET /api/debug/db error:', error);
+
+        res.status(500).json({
+            message: 'Debug error',
+            error: getErrorMessage(error),
+        });
+    }
+});
+
+app.get('/api/products', async (_req, res) => {
+    try {
+        const result = await pool.query<ProductDbRow>(`
+            SELECT
                 id,
                 name,
                 category,
@@ -212,61 +230,94 @@ app.get('/api/products', async (req, res) => {
 
         res.status(500).json({
             message: 'Ошибка при получении товаров',
+            error: getErrorMessage(error),
         });
     }
 });
 
-// // Проверка доступности бота
-// async function checkBotAvailability() {
-//     try {
-//         console.log('Проверяем доступность бота...');
-//
-//         // 1. Проверяем, что бот валидный
-//         const me = await bot.getMe();
-//         console.log(`Бот @${me.username} (ID: ${me.id}) доступен`);
-//
-//         // 2. Проверяем, что можем отправлять сообщения
-//         const testMessage = await bot.sendMessage(CHAT_ID, '🔌 Тестовое сообщение от бота', {
-//             parse_mode: 'HTML',
-//         });
-//
-//         console.log(`Тестовое сообщение отправлено (ID: ${testMessage.message_id})`);
-//         return true;
-//     } catch (error) {
-//         console.error('Ошибка проверки бота:', error);
-//
-//         // Детальный анализ ошибки
-//         if (error.code === 'ETELEGRAM' && error.response?.body?.error_code === 401) {
-//             console.error('Ошибка: Неверный токен бота');
-//         } else if (error.code === 'ETELEGRAM' && error.response?.body?.error_code === 400) {
-//             console.error('Ошибка: Проблема с chat_id. Проверьте:');
-//             console.error('- Бот добавлен в чат?');
-//             console.error('- Бот имеет права на отправку сообщений?');
-//             console.error('- CHAT_ID точно правильный?');
-//         } else {
-//             console.error('Неизвестная ошибка:', error);
-//         }
-//
-//         return false;
-//     }
-// }
+app.get('/api/categories', async (_req, res) => {
+    try {
+        const result = await pool.query<CategoryRow>(`
+            WITH category_counts AS (
+                SELECT 
+                    category AS name,
+                    COUNT(*) AS products_count
+                FROM products
+                WHERE category IS NOT NULL AND TRIM(category) <> ''
+                GROUP BY category
+            ),
+            category_images AS (
+                SELECT DISTINCT ON (category)
+                    category AS name,
+                    image
+                FROM products
+                WHERE category IS NOT NULL
+                  AND TRIM(category) <> ''
+                  AND image IS NOT NULL
+                  AND TRIM(image) <> ''
+                ORDER BY category, id DESC
+            )
+            SELECT
+                category_counts.name AS id,
+                category_counts.name AS name,
+                category_images.image,
+                category_counts.products_count
+            FROM category_counts
+            LEFT JOIN category_images
+                ON category_images.name = category_counts.name
+            ORDER BY category_counts.name ASC
+        `);
 
+        res.json(result.rows.map(row => ({
+            id: row.id,
+            name: row.name,
+            image: row.image || '',
+            productsCount: Number(row.products_count),
+        })));
+    } catch (error) {
+        console.error('GET /api/categories error:', error);
 
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
-
-    // const botAvailable = await checkBotAvailability();
-    // if (!botAvailable) {
-    //     console.error('❌ Бот недоступен, проверьте настройки');
-    //     process.exit(1);
-    // }
-    //
-    // console.log('✅ Бот готов к приему заказов');
+        res.status(500).json({
+            message: 'Ошибка при получении категорий',
+            error: getErrorMessage(error),
+        });
+    }
 });
 
-// Обработка ошибок процесса
-process.on('unhandledRejection', (error) => {
-    console.error('Необработанное исключение:', error);
+app.get('/api/categories/:category/products', async (req, res) => {
+    try {
+        const { category } = req.params;
+
+        const result = await pool.query<ProductDbRow>(`
+            SELECT
+                id,
+                name,
+                category,
+                barcode,
+                purchase_price,
+                selling_price,
+                unit,
+                stock,
+                min_stock,
+                image
+            FROM products
+            WHERE LOWER(TRIM(category)) = LOWER(TRIM($1))
+            ORDER BY id DESC
+        `, [category]);
+
+        res.json(result.rows.map(mapProduct));
+    } catch (error) {
+        console.error('GET /api/categories/:category/products error:', error);
+
+        res.status(500).json({
+            message: 'Ошибка при получении товаров категории',
+            error: getErrorMessage(error),
+        });
+    }
+});
+
+const PORT = Number(process.env.PORT || 3000);
+
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
 });
