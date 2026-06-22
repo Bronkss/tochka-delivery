@@ -52,7 +52,10 @@ const basketSlice = createSlice({
 
             state.total = calculateTotal(state.items);
         },
-        clearBasket: () => initialState,
+        clearBasket: (state) => {
+            state.items = [];
+            state.total = 0;
+        },
     },
 });
 

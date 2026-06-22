@@ -1,15 +1,18 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    exclude: ['ymaps3', '@yandex/ymaps3-types']
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/send-order': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
-  resolve: {
-    alias: {
-      'ymaps3': './src/types/ymaps3.d.ts' // Путь к вашим декларациям
-    }
-  }
 });

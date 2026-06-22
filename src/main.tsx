@@ -7,11 +7,13 @@ import CategoryPage from './pages/CategoryPage.tsx'
 import './styles/index.css';
 import { Provider } from 'react-redux';
 import { store } from './app/store';
+import ScrollToTop from "./hooks/ScrollToTop.tsx";
 
 createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
         <StrictMode>
             <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/auth" element={<Auth />} />

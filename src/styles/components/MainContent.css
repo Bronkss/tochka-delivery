@@ -1,11 +1,12 @@
 .main-content {
+    grid-area: main;
     padding: 1.5rem;
-    width: auto;
-    height: 100%;
-    max-height: 85vh;
-    border-radius: 3.2rem 1.2rem 1.2rem 3.2rem;
+    height: auto;
+    margin-top: 1rem;
+    min-height: calc(100vh - 8rem); /* Минимальная высота минус высота шапки */
+    border-radius: 3.2rem;
     background-color: var(--color-primary);
-    overflow-y: auto;
+    overflow-y: auto; /* Скролл только внутри основного контента */
 }
 
 .main-content__title {
@@ -55,4 +56,19 @@
 
 .main-content::-webkit-scrollbar-thumb:hover {
     background: #939393;             /* Цвет при наведении */
+}
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-row: 4 / 5;
+        grid-column: 1 / 4;
+        margin: 0;
+        border-radius: 0 0 3.2rem 3.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content__title {
+        font-size: 2.8rem;
+    }
 }

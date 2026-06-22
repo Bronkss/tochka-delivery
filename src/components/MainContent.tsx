@@ -1,7 +1,7 @@
 import CategoryCard from "./CategoryCard.tsx";
-import hotDogImage from '../assets/categories/gotovaya-eda/hot-dog.png';
+import pizzaImage from '../assets/categories/gotovaya-eda/pizzas.png';
 import burgerImage from '../assets/categories/gotovaya-eda/burger.png'
-import Footer from "./Footer.tsx";
+import cannedFood from '../assets/categories/bailey/canned-food.png'
 
 function MainContent() {
     return (
@@ -12,17 +12,17 @@ function MainContent() {
                     {/* Блок - Готовая еда*/}
                     <div className="main-content__category__gotovaya-eda">
                         <h2>Готовая еда</h2>
-                        <CategoryCard name="Хот-доги" imageUrl={hotDogImage} linkId="/category/hot-dogs"
-                                      alt="фото хот-дога"/>
+                        <CategoryCard name="Пиццы" imageUrl={pizzaImage} linkId="/category/pizzas"
+                                      alt="фото пиццы"/>
                         <CategoryCard name="Бургеры" imageUrl={burgerImage} linkId="/category/burgers"
                                       alt="фото бургера"/>
                     </div>
                     {/* Блок - Овощи и фрукты*/}
                     <div className="main-content__category__vegetables">
-                        <h2>Овощи и фрукты</h2>
+                        <h2>Бакалея</h2>
+                        <CategoryCard name="Консервы" imageUrl={cannedFood} linkId="/category/canned-food" alt="фото консерв" />
                     </div>
                 </div>
-                <Footer />
             </section>
         </>
     )

@@ -1,9 +1,13 @@
 .navbar {
+    grid-area: nav;
+    align-self: start;
+    position: sticky;
+    top: 8rem; /* Высота шапки + небольшой отступ */
+    height: calc(95vh - 8rem); /* Высота минус высота шапки */
     padding: 1.5rem;
-    width: auto;
-    height: 85vh;
     border-radius: 3.2rem;
     background-color: var(--color-primary);
+    overflow-y: auto;
 }
 
 .navbar__category {
@@ -41,6 +45,7 @@
     height: 3.4rem;
     object-fit: cover;
     transition: all 0.3s ease;
+    border-radius: 50%;
 }
 
 .navbar__list {
@@ -73,4 +78,16 @@
 
 .navbar__list__link:hover {
     color: var(--color-total-black);
+}
+
+@media (max-width: 1024px) {
+    .navbar {
+        width: 100%;
+        height: 50vh;
+        border-radius: 3.2rem 3.2rem 0 0;
+        grid-column: 1 / 4;
+        position: static;
+        grid-row: 2 / 3;
+        background-color: var(--color-grey4);
+    }
 }

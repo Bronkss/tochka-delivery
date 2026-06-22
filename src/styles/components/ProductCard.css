@@ -53,13 +53,14 @@
     font-size: 1.5rem;
     grid-column: 2 / 3;
     grid-row: 1 / 2;
-
+    text-align: center;
 }
 
 .product-card__pay__add-to-basket {
     background-color: transparent;
     grid-column: 3 / 4;
     grid-row: 1 / 2;
+    padding-right: 0.5rem;
 }
 
 .product-card__pay__add-to-basket:active {
@@ -82,6 +83,33 @@
     align-items: center;
     font-size: 4rem;
     font-weight: bold;
-    color: var(--color-grey4);
+    color: var(--color-primary);
     background-color: rgba(0, 0, 0, 0.3);
+}
+
+.product-card__default {
+    border-radius: 50%;
+    width: 70%;
+    margin: 0 auto;
+}
+
+.count-null {
+    display: flex;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 1rem;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-primary);
+    padding-top: 10rem;
+}
+
+@media (max-width: 1024px) {
+    .product-card__pay {
+        width: 100%;
+        justify-content: center;
+    }
 }

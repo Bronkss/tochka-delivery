@@ -90,20 +90,32 @@ body {
 
     /* Оптимизация отображения текста */
     text-rendering: optimizeSpeed;
+    overflow-y: auto;
 }
 
 html {
     position: relative;
     height: 100%;
     font-size: 62.5%;
-    overflow: hidden;
 }
 
 /* Стилизуем scrollbar страницы */
 
 body::-webkit-scrollbar {
-    width: 15px;
-    display: block;
+    width: 10px;                       /* Ширина скроллбара */
+}
+
+body::-webkit-scrollbar-track {
+    background: var(--color-black);          /* Цвет трека */
+}
+
+body::-webkit-scrollbar-thumb {
+    background: var(--color-grey);             /* Цвет ползунка */
+    border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: #939393;             /* Цвет при наведении */
 }
 
 

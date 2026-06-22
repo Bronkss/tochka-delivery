@@ -1,7 +1,19 @@
 .location-basket-switcher {
-    height: 85vh;
-    width: auto;
+    grid-area: aside;
+    align-self: start;
+    position: sticky;
+    top: 8rem; /* Аналогично навигации */
+    height: calc(95vh - 8rem);
     border-radius: 3.2rem;
     background-color: var(--color-primary);
-    grid-column: 3 / 4;
+}
+
+@media (max-width: 1024px) {
+    .location-basket-switcher {
+        grid-column: 1 / 4;
+        grid-row: 1 / 2;
+        position: static;
+        height: 11rem;
+        border-radius: 0 0 3.2rem 3.2rem;
+    }
 }
