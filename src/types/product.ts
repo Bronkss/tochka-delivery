@@ -1,4 +1,4 @@
-export type ProductUnit = 'piece' | 'weight';
+export type ProductUnit = "piece" | "weight";
 
 export interface Product {
     id: number;

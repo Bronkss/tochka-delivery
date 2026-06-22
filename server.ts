@@ -42,12 +42,10 @@ interface ProductDbRow {
     purchase_price?: number | string | null;
     selling_price?: number | string | null;
     min_stock?: number | string | null;
-    purchasePrice?: number | string | null;
-    sellingPrice?: number | string | null;
-    minStock?: number | string | null;
     unit?: ProductUnit | string | null;
     stock?: number | string | null;
     image?: string | null;
+    image_url?: string | null;
 }
 
 interface ProductResponse {
@@ -96,7 +94,7 @@ interface ProductPreviewRow {
     unit: string;
     stock: string;
     min_stock: string;
-    image_preview: string | null;
+    image_url_preview: string | null;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -107,18 +105,42 @@ function toProductUnit(value: unknown): ProductUnit {
     return value === 'weight' ? 'weight' : 'piece';
 }
 
+function normalizeImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) return '';
+
+    const value = imageUrl.trim();
+
+    if (!value) return '';
+
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+        return value;
+    }
+
+    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL;
+
+    if (blobBaseUrl && value.startsWith('/products/')) {
+        return `${blobBaseUrl}${value}`;
+    }
+
+    if (blobBaseUrl && value.startsWith('products/')) {
+        return `${blobBaseUrl}/${value}`;
+    }
+
+    return value;
+}
+
 function mapProduct(row: ProductDbRow): ProductResponse {
     return {
         id: Number(row.id),
         name: row.name || '',
         category: row.category || '',
         barcode: row.barcode || '',
-        purchasePrice: Number(row.purchase_price ?? row.purchasePrice ?? 0),
-        sellingPrice: Number(row.selling_price ?? row.sellingPrice ?? 0),
+        purchasePrice: Number(row.purchase_price ?? 0),
+        sellingPrice: Number(row.selling_price ?? 0),
         unit: toProductUnit(row.unit),
         stock: Number(row.stock ?? 0),
-        minStock: Number(row.min_stock ?? row.minStock ?? 0),
-        image: row.image || '',
+        minStock: Number(row.min_stock ?? 0),
+        image: normalizeImageUrl(row.image_url || row.image),
     };
 }
 
@@ -127,6 +149,7 @@ app.get('/api/whoami', (_req, res) => {
         server: 'new-server-ts-neon-version',
         time: new Date().toISOString(),
         databaseUrlExists: Boolean(process.env.DATABASE_URL),
+        blobBaseUrlExists: Boolean(process.env.BLOB_PUBLIC_BASE_URL),
         cwd: process.cwd(),
     });
 });
@@ -184,7 +207,7 @@ app.get('/api/debug/db', async (_req, res) => {
                 unit,
                 stock,
                 min_stock,
-                LEFT(image, 80) AS image_preview
+                LEFT(image_url, 120) AS image_url_preview
             FROM products
             ORDER BY id DESC
             LIMIT 5
@@ -219,7 +242,7 @@ app.get('/api/products', async (_req, res) => {
                 unit,
                 stock,
                 min_stock,
-                image
+                image_url
             FROM products
             ORDER BY id DESC
         `);
@@ -249,12 +272,12 @@ app.get('/api/categories', async (_req, res) => {
             category_images AS (
                 SELECT DISTINCT ON (category)
                     category AS name,
-                    image
+                    image_url AS image
                 FROM products
                 WHERE category IS NOT NULL
                   AND TRIM(category) <> ''
-                  AND image IS NOT NULL
-                  AND TRIM(image) <> ''
+                  AND image_url IS NOT NULL
+                  AND TRIM(image_url) <> ''
                 ORDER BY category, id DESC
             )
             SELECT
@@ -271,7 +294,7 @@ app.get('/api/categories', async (_req, res) => {
         res.json(result.rows.map(row => ({
             id: row.id,
             name: row.name,
-            image: row.image || '',
+            image: normalizeImageUrl(row.image),
             productsCount: Number(row.products_count),
         })));
     } catch (error) {
@@ -299,7 +322,7 @@ app.get('/api/categories/:category/products', async (req, res) => {
                 unit,
                 stock,
                 min_stock,
-                image
+                image_url
             FROM products
             WHERE LOWER(TRIM(category)) = LOWER(TRIM($1))
             ORDER BY id DESC

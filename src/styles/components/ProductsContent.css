@@ -1,35 +1,80 @@
 .products-content {
     grid-area: main;
-    padding: 1.5rem;
-    height: auto;
+
+    height: 100%;
+    min-height: 0;
+
     margin-top: 1rem;
-    min-height: calc(100vh - 8rem); /* Минимальная высота минус высота шапки */
+    padding: 1.5rem;
+    box-sizing: border-box;
+
     border-radius: 3.2rem;
     background-color: var(--color-primary);
-    overflow-y: auto; /* Скролл только внутри основного контента */
+
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .products-content__title {
+    margin-bottom: 2rem;
     font-size: 3.5rem;
+    line-height: 1.15;
 }
 
 .products-content__linkToHome {
+    display: inline-block;
+    margin-bottom: 1.2rem;
     color: var(--color-grey3);
     font-size: 2rem;
+    text-decoration: none;
+}
+
+.products-content__linkToHome:hover {
+    color: var(--color-accent);
 }
 
 .products-content__cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 1.6rem;
+    align-items: stretch;
+}
+
+.products-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.products-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.products-content::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 999px;
+}
+
+.products-content::-webkit-scrollbar-thumb:hover {
+    background: #939393;
 }
 
 @media (max-width: 1024px) {
     .products-content {
-        grid-row: 4 / 5;
-        grid-column: 1 / 4;
+        grid-area: main;
+        height: auto;
+        min-height: 50rem;
         margin: 0;
         border-radius: 0 0 3.2rem 3.2rem;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 560px) {
+    .products-content__cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .products-content__title {
+        font-size: 2.6rem;
     }
 }

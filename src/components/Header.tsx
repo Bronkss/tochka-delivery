@@ -8,7 +8,7 @@ export default function Header() {
         <>
             <header className="header">
                 <Link to="/" className="header__logo__link">
-                    <img className="header__logo" src="/logo.jpg" alt="логотип компании"/>
+                    <img className="header__logo" src="/logo.png" alt="логотип компании"/>
                 </Link>
 
                 <div className="header__input-block">
