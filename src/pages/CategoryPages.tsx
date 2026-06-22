@@ -73,7 +73,6 @@ export default function CategoryPages() {
                         image={product.image || "/icons/products.jpg"}
                         weight={0}
                         price={Math.floor(product.sellingPrice || 0)}
-                        stock={product.stock || 0}
                     />
                 ))}
             </ProductsContent>
