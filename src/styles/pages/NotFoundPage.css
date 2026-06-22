@@ -1,6 +1,6 @@
 .not-found-container {
     position: relative;
-    height: 95vh;
+    height: 94vh;
     overflow: hidden;
     background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
     color: white;
@@ -14,6 +14,15 @@
     z-index: 10000;
     border-radius: 50%;
     margin: 2rem 0;
+}
+
+@media (max-width: 1024px) {
+    .not-found-container {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+    }
 }
 
 /* Звездный фон */

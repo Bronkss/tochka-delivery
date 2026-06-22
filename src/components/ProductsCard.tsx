@@ -4,7 +4,6 @@ import {addToBasket, removeFromBasket} from '../app/basketSlice';
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
 import defaultImage from '../assets/videos/defaultAnimation.mp4'
-import YandexMaps from "./YandexMaps.tsx";
 import {useEffect, useRef, useState} from "react";
 
 interface ProductCardProps {
@@ -138,7 +137,7 @@ export default function ProductsCard(props: ProductCardProps) {
                                 ×
                             </button>
                             <div className="modal-content">
-                                <YandexMaps />
+                                // карты сюда
                             </div>
                         </div>
                     </div>

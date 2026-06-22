@@ -1,13 +1,11 @@
-import YandexMapsPreview from "./YandexMapsPreview.tsx";
 import Basket from "./Basket.tsx";
-
+// навигация по карте сюда
 
 
 function LocationBasketSwitcher() {
     return (
         <>
             <div className="location-basket-switcher">
-                <YandexMapsPreview />
                 <Basket />
             </div>
         </>

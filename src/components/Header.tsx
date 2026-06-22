@@ -7,7 +7,7 @@ export default function Header() {
     return (
         <>
             <header className="header">
-                <Link to="/">
+                <Link to="/" className="header__logo__link">
                     <img className="header__logo" src="/logo.jpg" alt="логотип компании"/>
                 </Link>
 

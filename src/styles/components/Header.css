@@ -11,14 +11,18 @@
     border-bottom-left-radius: 3.2rem;
     border-bottom-right-radius: 3.2rem;
     gap: 2rem;
-
+    align-items: center;
 }
 
 .header__logo {
-    max-width: 17rem;
+    max-width: 15rem;
     width: 100%;
     object-fit: cover;
     padding-left: 2rem;
+}
+
+.header__logo__link {
+    margin-bottom: 1rem;
 }
 
 .header__input-block {
