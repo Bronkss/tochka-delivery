@@ -1,7 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getErrorMessage, getPool } from '../server/db';
-import { allowMethods, applyCors, setNoStore } from '../server/http';
-import { normalizeImageUrl } from '../server/productMapper';
+import pg from 'pg';
 
 interface CategoryRow {
     id: string;
@@ -10,13 +7,68 @@ interface CategoryRow {
     products_count: string;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (applyCors(req, res)) return;
+let cachedPool: pg.Pool | null = null;
 
-    setNoStore(res);
+function getPool(): pg.Pool {
+    const databaseUrl = process.env.DATABASE_URL;
 
-    if (allowMethods(req, res, ['GET'])) return;
+    if (!databaseUrl) {
+        throw new Error('DATABASE_URL не задана');
+    }
 
+    if (!cachedPool) {
+        cachedPool = new pg.Pool({
+            connectionString: databaseUrl,
+            ssl: {
+                rejectUnauthorized: false,
+            },
+            max: 5,
+            idleTimeoutMillis: 30_000,
+            connectionTimeoutMillis: 10_000,
+        });
+    }
+
+    return cachedPool;
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function normalizeImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) return '';
+
+    const value = imageUrl.trim();
+
+    if (!value) return '';
+
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+        return value;
+    }
+
+    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL?.replace(/\/$/, '');
+
+    if (blobBaseUrl && value.startsWith('/products/')) {
+        return `${blobBaseUrl}${value}`;
+    }
+
+    if (blobBaseUrl && value.startsWith('products/')) {
+        return `${blobBaseUrl}/${value}`;
+    }
+
+    return value;
+}
+
+function json(data: unknown, status = 200): Response {
+    return Response.json(data, {
+        status,
+        headers: {
+            'Cache-Control': 'no-store',
+        },
+    });
+}
+
+export async function GET() {
     try {
         const result = await getPool().query<CategoryRow>(`
             WITH category_counts AS (
@@ -24,7 +76,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     category AS name,
                     COUNT(*) AS products_count
                 FROM products
-                WHERE category IS NOT NULL AND TRIM(category) <> ''
+                WHERE category IS NOT NULL 
+                  AND TRIM(category) <> ''
                 GROUP BY category
             ),
             category_images AS (
@@ -49,7 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ORDER BY category_counts.name ASC
         `);
 
-        res.status(200).json(result.rows.map(row => ({
+        return json(result.rows.map(row => ({
             id: row.id,
             name: row.name,
             image: normalizeImageUrl(row.image),
@@ -58,9 +111,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } catch (error) {
         console.error('GET /api/categories error:', error);
 
-        res.status(500).json({
+        return json({
+            ok: false,
             message: 'Ошибка при получении категорий',
             error: getErrorMessage(error),
-        });
+        }, 500);
     }
 }

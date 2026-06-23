@@ -1,36 +1,130 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getErrorMessage, getPool } from '../../../server/db';
-import { allowMethods, applyCors, setNoStore } from '../../../server/http';
-import { mapProduct, type ProductDbRow } from '../../../server/productMapper';
+import pg from 'pg';
 
-function getCategory(req: VercelRequest): string {
-    const raw = req.query.category;
+type ProductUnit = 'piece' | 'weight';
 
-    if (Array.isArray(raw)) {
-        return raw[0] || '';
-    }
-
-    return typeof raw === 'string' ? raw : '';
+interface ProductDbRow {
+    id: number | string;
+    name?: string | null;
+    category?: string | null;
+    barcode?: string | null;
+    purchase_price?: number | string | null;
+    selling_price?: number | string | null;
+    min_stock?: number | string | null;
+    unit?: ProductUnit | string | null;
+    stock?: number | string | null;
+    image?: string | null;
+    image_url?: string | null;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (applyCors(req, res)) return;
+let cachedPool: pg.Pool | null = null;
 
-    setNoStore(res);
+function getPool(): pg.Pool {
+    const databaseUrl = process.env.DATABASE_URL;
 
-    if (allowMethods(req, res, ['GET'])) return;
-
-    const category = getCategory(req);
-
-    if (!category.trim()) {
-        res.status(400).json({
-            message: 'Категория не передана',
-        });
-
-        return;
+    if (!databaseUrl) {
+        throw new Error('DATABASE_URL не задана');
     }
 
+    if (!cachedPool) {
+        cachedPool = new pg.Pool({
+            connectionString: databaseUrl,
+            ssl: {
+                rejectUnauthorized: false,
+            },
+            max: 5,
+            idleTimeoutMillis: 30_000,
+            connectionTimeoutMillis: 10_000,
+        });
+    }
+
+    return cachedPool;
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function toProductUnit(value: unknown): ProductUnit {
+    return value === 'weight' ? 'weight' : 'piece';
+}
+
+function normalizeImageUrl(imageUrl: string | null | undefined): string {
+    if (!imageUrl) return '';
+
+    const value = imageUrl.trim();
+
+    if (!value) return '';
+
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+        return value;
+    }
+
+    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL?.replace(/\/$/, '');
+
+    if (blobBaseUrl && value.startsWith('/products/')) {
+        return `${blobBaseUrl}${value}`;
+    }
+
+    if (blobBaseUrl && value.startsWith('products/')) {
+        return `${blobBaseUrl}/${value}`;
+    }
+
+    return value;
+}
+
+function mapProduct(row: ProductDbRow) {
+    return {
+        id: Number(row.id),
+        name: row.name || '',
+        category: row.category || '',
+        barcode: row.barcode || '',
+        purchasePrice: Number(row.purchase_price ?? 0),
+        sellingPrice: Number(row.selling_price ?? 0),
+        unit: toProductUnit(row.unit),
+        stock: Number(row.stock ?? 0),
+        minStock: Number(row.min_stock ?? 0),
+        image: normalizeImageUrl(row.image_url || row.image),
+    };
+}
+
+function json(data: unknown, status = 200): Response {
+    return Response.json(data, {
+        status,
+        headers: {
+            'Cache-Control': 'no-store',
+        },
+    });
+}
+
+function getCategoryFromRequest(request: Request): string {
+    const url = new URL(request.url);
+
+    const fromQuery = url.searchParams.get('category');
+
+    if (fromQuery) {
+        return fromQuery;
+    }
+
+    const match = url.pathname.match(/^\/api\/categories\/(.+)\/products$/);
+
+    if (!match?.[1]) {
+        return '';
+    }
+
+    return decodeURIComponent(match[1]);
+}
+
+export async function GET(request: Request) {
     try {
+        const category = getCategoryFromRequest(request).trim();
+
+        if (!category) {
+            return json({
+                ok: false,
+                message: 'Категория не передана',
+            }, 400);
+        }
+
         const result = await getPool().query<ProductDbRow>(`
             SELECT
                 id,
@@ -48,13 +142,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ORDER BY id DESC
         `, [category]);
 
-        res.status(200).json(result.rows.map(mapProduct));
+        return json(result.rows.map(mapProduct));
     } catch (error) {
-        console.error('GET /api/categories/:category/products error:', error);
+        console.error('GET /api/categories/[category]/products error:', error);
 
-        res.status(500).json({
+        return json({
+            ok: false,
             message: 'Ошибка при получении товаров категории',
             error: getErrorMessage(error),
-        });
+        }, 500);
     }
 }
