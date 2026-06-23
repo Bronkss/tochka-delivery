@@ -1,6 +1,43 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { setTelegramWebhook } from './_telegram';
+async function callTelegram<T>(
+    method: string,
+    payload: Record<string, unknown>
+): Promise<T> {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+
+    if (!token) {
+        throw new Error('TELEGRAM_BOT_TOKEN is not set');
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const text = await response.text();
+
+    let data: {
+        ok?: boolean;
+        result?: T;
+        description?: string;
+    };
+
+    try {
+        data = JSON.parse(text);
+    } catch {
+        throw new Error(`Telegram returned non-JSON response: ${text.slice(0, 300)}`);
+    }
+
+    if (!response.ok || !data.ok) {
+        throw new Error(data.description || `Telegram API error: ${response.status}`);
+    }
+
+    return data.result as T;
+}
 
 function getQueryValue(value: string | string[] | undefined): string {
     if (Array.isArray(value)) {
@@ -14,39 +51,59 @@ export default async function handler(
     req: VercelRequest,
     res: VercelResponse
 ) {
-    if (req.method !== 'GET' && req.method !== 'POST') {
-        return res.status(405).json({
-            success: false,
-            message: 'Method not allowed',
-        });
-    }
-
-    const setupSecret = process.env.WEBHOOK_SETUP_SECRET;
-    const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-
-    if (!setupSecret || !telegramWebhookSecret) {
-        return res.status(500).json({
-            success: false,
-            message: 'WEBHOOK_SETUP_SECRET or TELEGRAM_WEBHOOK_SECRET is not set',
-        });
-    }
-
-    const requestSecret = getQueryValue(req.query.secret);
-
-    if (requestSecret !== setupSecret) {
-        return res.status(401).json({
-            success: false,
-            message: 'Unauthorized',
-        });
-    }
-
-    const appUrl = (process.env.APP_URL || `https://${req.headers.host}`)
-        .replace(/\/$/, '');
-
-    const webhookUrl = `${appUrl}/api/telegram-webhook`;
-
     try {
-        await setTelegramWebhook(webhookUrl, telegramWebhookSecret);
+        if (req.method !== 'GET' && req.method !== 'POST') {
+            return res.status(405).json({
+                success: false,
+                message: 'Method not allowed',
+            });
+        }
+
+        const setupSecret = process.env.WEBHOOK_SETUP_SECRET;
+        const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+
+        if (!setupSecret) {
+            return res.status(500).json({
+                success: false,
+                message: 'WEBHOOK_SETUP_SECRET is not set',
+            });
+        }
+
+        if (!telegramWebhookSecret) {
+            return res.status(500).json({
+                success: false,
+                message: 'TELEGRAM_WEBHOOK_SECRET is not set',
+            });
+        }
+
+        if (!telegramBotToken) {
+            return res.status(500).json({
+                success: false,
+                message: 'TELEGRAM_BOT_TOKEN is not set',
+            });
+        }
+
+        const requestSecret = getQueryValue(req.query.secret);
+
+        if (requestSecret !== setupSecret) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized: wrong secret',
+            });
+        }
+
+        const appUrl = (process.env.APP_URL || `https://${req.headers.host}`)
+            .replace(/\/$/, '');
+
+        const webhookUrl = `${appUrl}/api/telegram-webhook`;
+
+        await callTelegram<boolean>('setWebhook', {
+            url: webhookUrl,
+            secret_token: telegramWebhookSecret,
+            allowed_updates: ['message', 'callback_query'],
+            drop_pending_updates: true,
+        });
 
         return res.status(200).json({
             success: true,
@@ -57,7 +114,7 @@ export default async function handler(
 
         return res.status(500).json({
             success: false,
-            message: 'Failed to set Telegram webhook',
+            message: error instanceof Error ? error.message : 'Unknown error',
         });
     }
 }

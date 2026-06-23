@@ -334,7 +334,20 @@ export default function Basket() {
                 body: JSON.stringify(orderData),
             });
 
-            const data = await response.json() as CreateOrderResponse;
+            const text = await response.text();
+
+            let data: CreateOrderResponse;
+
+            try {
+                data = JSON.parse(text) as CreateOrderResponse;
+            } catch {
+                console.error('Сервер вернул не JSON:', text);
+
+                return {
+                    success: false,
+                    message: 'Сервер вернул ошибку. Проверь Vercel Function Logs.',
+                };
+            }
 
             if (!response.ok || !data.success) {
                 return {
