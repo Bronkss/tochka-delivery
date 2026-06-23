@@ -81,10 +81,12 @@ export default function ProductCard(props: ProductCardProps) {
             <div className="product-card__image-block">
                 {image ? (
                     <img
-                        src={image}
+                        className="products-card__image"
+                        src={image || "/product-placeholder.png"}
                         alt={title}
-                        className="product-card__image"
-                        loading="lazy"
+                        onError={(event) => {
+                            event.currentTarget.src = "/product-placeholder.png";
+                        }}
                     />
                 ) : (
                     <video
