@@ -13,71 +13,128 @@ const initialState: AddressState = {
     buttonCheck: false,
 };
 
-const REMOVE_ADDRESS_PARTS = [
-    /^(россия|рф)$/i,
-    /^\d{6}$/,
-    /федеральный округ/i,
-    /область/i,
-    /\bкрай\b/i,
-    /республика/i,
-    /район/i,
-    /муниципаль/i,
-    /городской округ/i,
-];
-
-const SETTLEMENT_REGEXP = /\b(город|г\.?|село|с\.?|деревня|д\.?|пос[её]лок|п\.?|пгт|станица|аул)\b/i;
-const STREET_REGEXP = /\b(улица|ул\.?|проспект|пр-кт|переулок|пер\.?|проезд|шоссе|бульвар|б-р|площадь|пл\.?|набережная|наб\.?)\b/i;
-const HOUSE_REGEXP = /\b(дом|д\.?|здание|зд\.?|строение|стр\.?|корпус|к\.?)\s*[\dа-яa-z/-]+\b|^\d+[а-яa-z]?(?:[/-]\d+[а-яa-z]?)?$/i;
-
-function cleanAddressPart(part: string) {
+function formatAddressPart(part: string): string {
     return part
-        .trim()
-        .replace(/\s+/g, ' ')
         .replace(/^город\s+/i, 'г. ')
         .replace(/^село\s+/i, 'с. ')
         .replace(/^деревня\s+/i, 'д. ')
         .replace(/^пос[её]лок\s+/i, 'п. ')
+        .replace(/^рабочий пос[её]лок\s+/i, 'рп. ')
         .replace(/^улица\s+/i, 'ул. ')
-        .replace(/^дом\s+/i, 'д. ');
+        .replace(/^проспект\s+/i, 'пр-т ')
+        .replace(/^переулок\s+/i, 'пер. ')
+        .replace(/^бульвар\s+/i, 'б-р ')
+        .replace(/^площадь\s+/i, 'пл. ')
+        .replace(/^проезд\s+/i, 'пр-д ')
+        .replace(/^шоссе\s+/i, 'ш. ')
+        .replace(/^набережная\s+/i, 'наб. ')
+        .replace(/^дом\s+/i, 'д. ')
+        .trim();
 }
 
-function shouldRemoveAddressPart(part: string) {
-    return REMOVE_ADDRESS_PARTS.some((regexp) => regexp.test(part));
+function isTrashAddressPart(part: string): boolean {
+    const value = part.toLowerCase();
+
+    return (
+        value === 'россия' ||
+        value.includes('область') ||
+        value.includes('край') ||
+        value.includes('республика') ||
+        value.includes('район') ||
+        value.includes('округ') ||
+        value.includes('муниципальное') ||
+        value.includes('муниципальный') ||
+        value.includes('городской округ') ||
+        value.includes('сельское поселение') ||
+        value.includes('территория')
+    );
 }
 
-function isSettlement(part: string) {
-    return SETTLEMENT_REGEXP.test(part) && !STREET_REGEXP.test(part);
+function isLocalityPart(part: string): boolean {
+    const value = part.toLowerCase();
+
+    return (
+        value.startsWith('город ') ||
+        value.startsWith('г. ') ||
+        value.startsWith('село ') ||
+        value.startsWith('с. ') ||
+        value.startsWith('деревня ') ||
+        value.startsWith('д. ') ||
+        value.startsWith('поселок ') ||
+        value.startsWith('посёлок ') ||
+        value.startsWith('п. ') ||
+        value.startsWith('рабочий поселок ') ||
+        value.startsWith('рабочий посёлок ') ||
+        value.startsWith('рп. ')
+    );
 }
 
-function isStreet(part: string) {
-    return STREET_REGEXP.test(part);
+function isStreetPart(part: string): boolean {
+    const value = part.toLowerCase();
+
+    return (
+        value.startsWith('улица ') ||
+        value.startsWith('ул. ') ||
+        value.startsWith('проспект ') ||
+        value.startsWith('пр-т ') ||
+        value.startsWith('переулок ') ||
+        value.startsWith('пер. ') ||
+        value.startsWith('бульвар ') ||
+        value.startsWith('б-р ') ||
+        value.startsWith('площадь ') ||
+        value.startsWith('пл. ') ||
+        value.startsWith('проезд ') ||
+        value.startsWith('пр-д ') ||
+        value.startsWith('шоссе ') ||
+        value.startsWith('ш. ') ||
+        value.startsWith('набережная ') ||
+        value.startsWith('наб. ') ||
+        value.startsWith('тракт ') ||
+        value.startsWith('микрорайон ') ||
+        value.startsWith('мкр. ')
+    );
 }
 
-function isHouse(part: string) {
-    return HOUSE_REGEXP.test(part);
+function isHousePart(part: string): boolean {
+    const value = part.toLowerCase().trim();
+
+    return (
+        /^д\.?\s*\d+/i.test(value) ||
+        /^дом\s+\d+/i.test(value) ||
+        /^\d+[а-яa-z]?(?:\/\d+)?$/i.test(value)
+    );
 }
 
-export function formatShortAddress(address: string) {
-    const sourceParts = address
+function makeShortAddress(address: string): string {
+    const parts = address
         .split(',')
-        .map(cleanAddressPart)
-        .filter(Boolean);
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .filter((part) => !isTrashAddressPart(part));
 
-    const usefulParts = sourceParts.filter((part) => !shouldRemoveAddressPart(part));
-
-    const settlement = usefulParts.find(isSettlement) ?? usefulParts.find((part) => !isStreet(part) && !isHouse(part));
-    const street = usefulParts.find(isStreet);
-    const house = usefulParts.find(isHouse);
-
-    const result = [settlement, street, house]
-        .filter((part): part is string => Boolean(part))
-        .filter((part, index, array) => array.indexOf(part) === index);
-
-    if (result.length > 0) {
-        return result.join(', ');
+    if (parts.length === 0) {
+        return address.trim();
     }
 
-    return address.trim();
+    const locality = parts.find(isLocalityPart);
+    const street = parts.find(isStreetPart);
+
+    const house = [...parts]
+        .reverse()
+        .find(isHousePart);
+
+    const result = [locality, street, house]
+        .filter(Boolean)
+        .map((part) => formatAddressPart(part as string));
+
+    if (result.length > 0) {
+        return [...new Set(result)].join(', ');
+    }
+
+    return parts
+        .map(formatAddressPart)
+        .slice(-3)
+        .join(', ');
 }
 
 const addressSlice = createSlice({
@@ -85,7 +142,7 @@ const addressSlice = createSlice({
     initialState,
     reducers: {
         setAddress: (state, action: PayloadAction<string>) => {
-            const value = formatShortAddress(action.payload);
+            const value = makeShortAddress(action.payload.trim());
 
             state.value = value;
             state.isValid = value.length >= 5;
