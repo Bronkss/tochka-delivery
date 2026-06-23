@@ -68,6 +68,14 @@ interface OrderConfirmationState {
     orderNumber?: string;
 }
 
+interface CreateOrderResponse {
+    success: boolean;
+    orderId?: number;
+    orderNumber?: string;
+    telegramSent?: boolean;
+    message?: string;
+}
+
 function BasketItem({ item, onRemove, onAdd }: BasketItemProps) {
     return (
         <li className="basket__item">
@@ -167,12 +175,6 @@ export default function Basket() {
     const productsCardRef = useRef<HTMLElement | null>(null);
     const originalHeaderZIndexRef = useRef<string>('');
     const originalProductsZIndexRef = useRef<string>('');
-
-    const generateOrderNumber = () => {
-        return `ORD-${Math.floor(Math.random() * 1000000)
-            .toString()
-            .padStart(6, '0')}`;
-    };
 
     const getCurrentZIndex = (element: HTMLElement): number => {
         const zIndex = window.getComputedStyle(element).zIndex;
@@ -320,9 +322,11 @@ export default function Basket() {
         setShowModal(false);
     };
 
-    const sendOrderToBot = async (orderData: OrderData): Promise<boolean> => {
+    const sendOrderToBot = async (
+        orderData: OrderData
+    ): Promise<CreateOrderResponse> => {
         try {
-            const response = await fetch('http://localhost:3000/send-order', {
+            const response = await fetch('/api/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -330,14 +334,23 @@ export default function Basket() {
                 body: JSON.stringify(orderData),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json() as CreateOrderResponse;
+
+            if (!response.ok || !data.success) {
+                return {
+                    success: false,
+                    message: data.message || `HTTP error! status: ${response.status}`,
+                };
             }
 
-            return true;
+            return data;
         } catch (error) {
             console.error('Ошибка при отправке заказа:', error);
-            return false;
+
+            return {
+                success: false,
+                message: 'Ошибка при отправке заказа',
+            };
         }
     };
 
@@ -345,6 +358,16 @@ export default function Basket() {
         event.preventDefault();
 
         if (!validateForm()) return;
+
+        if (items.length === 0) {
+            alert('Корзина пуста');
+            return;
+        }
+
+        if (total < 100) {
+            alert('Минимальная сумма заказа — 100 ₽');
+            return;
+        }
 
         setIsSubmitting(true);
 
@@ -367,22 +390,30 @@ export default function Basket() {
             timestamp: new Date().toISOString(),
         };
 
-        const isSuccess = await sendOrderToBot(orderData);
+        const result = await sendOrderToBot(orderData);
 
         setIsSubmitting(false);
 
-        if (isSuccess) {
+        if (result.success) {
             setOrderConfirmation({
                 isConfirmed: true,
-                orderNumber: generateOrderNumber(),
+                orderNumber: result.orderNumber,
             });
 
             closeModal();
             dispatch(clearBasket());
+
+            if (!result.telegramSent) {
+                console.warn('Заказ создан, но сообщение в Telegram не отправилось');
+            }
+
             return;
         }
 
-        alert('Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте ещё раз.');
+        alert(
+            result.message ||
+            'Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте ещё раз.'
+        );
     };
 
     const handleReturnToMain = () => {
@@ -676,7 +707,7 @@ export default function Basket() {
                             <h2>Заказ принят!</h2>
 
                             <p className="order-number">
-                                Номер заказа: {orderConfirmation.orderNumber}
+                                Номер заказа: {orderConfirmation.orderNumber || 'создаётся'}
                             </p>
 
                             <p className="confirmation-message">
