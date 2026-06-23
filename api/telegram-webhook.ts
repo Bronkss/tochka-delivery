@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { getPool } from './_db';
+import { getPool } from './_db.js';
 import {
     answerCallbackQuery,
     buildOrderKeyboard,
@@ -8,9 +8,9 @@ import {
     formatOrderMessage,
     getTelegramUserName,
     sendTelegramMessage,
-} from './_telegram';
+} from './_telegram.js';
 
-import type { TelegramUser } from './_telegram';
+import type { TelegramUser } from './_telegram.js';
 
 interface TelegramUpdate {
     update_id: number;

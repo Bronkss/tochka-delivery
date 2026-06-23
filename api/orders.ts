@@ -1,11 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-import { getPool } from './_db';
-import {
+const { getPool } = await import('./_db.js');
+
+const {
     buildOrderKeyboard,
     formatOrderMessage,
     sendTelegramMessage,
-} from './_telegram';
+} = await import('./_telegram.js');
 
 interface IncomingOrderItem {
     id: string;
