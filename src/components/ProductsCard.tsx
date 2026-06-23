@@ -101,12 +101,14 @@ export default function ProductCard(props: ProductCardProps) {
         <article className="product-card">
             <div className="product-card__image-block">
                 <img
-                    className="products-card__image"
+                    className="product-card__image products-card__image"
                     src={imageSrc}
                     alt={title}
                     loading="lazy"
                     onError={() => {
-                        setImageSrc(PRODUCT_PLACEHOLDER);
+                        if (imageSrc !== PRODUCT_PLACEHOLDER) {
+                            setImageSrc(PRODUCT_PLACEHOLDER);
+                        }
                     }}
                 />
 
