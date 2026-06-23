@@ -413,7 +413,6 @@ export default function Basket() {
     return (
         <div className="basket">
             <div className="basket__address">
-                <span className="current-address">{address}</span>
                 <span className="delivery-time">Доставка 20 минут</span>
             </div>
 

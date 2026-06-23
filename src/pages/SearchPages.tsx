@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import Header from "../components/Header.tsx";
 import Navbar from "../components/Navbar.tsx";
@@ -9,44 +9,41 @@ import ProductsCard from "../components/ProductsCard.tsx";
 
 import type { Product } from "../types/product.ts";
 
-function normalizeSearchText(value: string) {
-    return value
+type SearchProduct = Product & {
+    categoryName?: string;
+    category?: string;
+    description?: string;
+};
+
+function normalizeSearchText(value: unknown): string {
+    return String(value ?? "")
         .toLowerCase()
         .replaceAll("ё", "е")
         .trim();
 }
 
-export default function CategoryPages() {
-    const { categoryId } = useParams<{ categoryId: string }>();
+export default function SearchPages() {
     const [searchParams] = useSearchParams();
 
     const searchQuery = searchParams.get("search") ?? "";
 
-    const categoryName = categoryId
-        ? decodeURIComponent(categoryId)
-        : "";
-
-    const [products, setProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<SearchProduct[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!categoryName) return;
-
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
                 setError(null);
 
-                const response = await fetch(
-                    `/api/categories/${encodeURIComponent(categoryName)}/products`
-                );
+                const response = await fetch("/api/products");
 
                 if (!response.ok) {
                     throw new Error("Не удалось загрузить товары");
                 }
 
-                const data: Product[] = await response.json();
+                const data: SearchProduct[] = await response.json();
 
                 setProducts(data);
             } catch (error) {
@@ -58,29 +55,30 @@ export default function CategoryPages() {
         };
 
         fetchProducts();
-    }, [categoryName]);
+    }, []);
 
     const visibleProducts = useMemo(() => {
         const normalizedQuery = normalizeSearchText(searchQuery);
 
         if (!normalizedQuery) {
-            return products;
+            return [];
         }
 
+        const queryWords = normalizedQuery
+            .split(/\s+/)
+            .filter(Boolean);
+
         return products.filter((product) => {
-            const productName = normalizeSearchText(product.name ?? "");
-            const productCategory = normalizeSearchText(categoryName);
+            const productSearchText = normalizeSearchText([
+                product.name,
+                product.categoryName,
+                product.category,
+                product.description,
+            ].join(" "));
 
-            return (
-                productName.includes(normalizedQuery) ||
-                productCategory.includes(normalizedQuery)
-            );
+            return queryWords.every((word) => productSearchText.includes(word));
         });
-    }, [products, searchQuery, categoryName]);
-
-    const pageTitle = searchQuery
-        ? `Поиск: ${searchQuery}`
-        : categoryName;
+    }, [products, searchQuery]);
 
     return (
         <>
@@ -88,16 +86,16 @@ export default function CategoryPages() {
             <Navbar />
             <LocationBasketSwitcher />
 
-            <ProductsContent title={pageTitle}>
+            <ProductsContent title={`Поиск: ${searchQuery}`}>
                 {isLoading && <p>Загрузка товаров...</p>}
 
                 {error && <p>{error}</p>}
 
-                {!isLoading && !error && products.length === 0 && (
-                    <p>Товары в этой категории не найдены</p>
+                {!isLoading && !error && !searchQuery && (
+                    <p>Введите название товара в поиске</p>
                 )}
 
-                {!isLoading && !error && products.length > 0 && visibleProducts.length === 0 && (
+                {!isLoading && !error && searchQuery && visibleProducts.length === 0 && (
                     <p>По запросу «{searchQuery}» ничего не найдено</p>
                 )}
 
