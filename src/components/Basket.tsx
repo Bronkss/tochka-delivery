@@ -9,7 +9,6 @@ import { addToBasket, clearBasket, removeFromBasket } from '../app/basketSlice';
 import deliveryManIcon from '../assets/delivery-man-icon.png';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
 import basketIcon from '../assets/icons/basket-icon.png';
-import defaultImage from '../../public/videos/defaultAnimation.mp4';
 import addIcon from '../assets/icons/add-to-basket.svg';
 
 interface BasketItemProps {
@@ -66,6 +65,7 @@ interface OrderData {
 interface OrderConfirmationState {
     isConfirmed: boolean;
     orderNumber?: string;
+    deliveryAddress?: string;
 }
 
 interface CreateOrderResponse {
@@ -76,22 +76,34 @@ interface CreateOrderResponse {
     message?: string;
 }
 
+function buildDeliveryAddress(address: string, apartment?: string): string {
+    const cleanAddress = address.trim();
+    const cleanApartment = apartment?.trim();
+
+    if (!cleanApartment) {
+        return cleanAddress;
+    }
+
+    return `${cleanAddress}, ${cleanApartment}`;
+}
+
 function BasketItem({ item, onRemove, onAdd }: BasketItemProps) {
+    const fallbackImage = '/product-placeholder.png';
+
     return (
         <li className="basket__item">
             <div className="basket__item-info">
                 <div className="basket__item-image-block">
-                    {item.image ? (
-                        <img
-                            src={item.image}
-                            alt={item.title}
-                            className="basket__item-image"
-                        />
-                    ) : (
-                        <video className="default-basket" autoPlay loop muted playsInline>
-                            <source src={defaultImage} type="video/mp4" />
-                        </video>
-                    )}
+                    <img
+                        src={item.image || fallbackImage}
+                        alt={item.title}
+                        className="basket__item-image"
+                        onError={(event) => {
+                            if (!event.currentTarget.src.endsWith(fallbackImage)) {
+                                event.currentTarget.src = fallbackImage;
+                            }
+                        }}
+                    />
                 </div>
 
                 <div className="basket__item-description">
@@ -169,6 +181,7 @@ export default function Basket() {
     const [orderConfirmation, setOrderConfirmation] = useState<OrderConfirmationState>({
         isConfirmed: false,
         orderNumber: undefined,
+        deliveryAddress: undefined,
     });
 
     const headerRef = useRef<HTMLElement | null>(null);
@@ -384,6 +397,8 @@ export default function Basket() {
 
         setIsSubmitting(true);
 
+        const deliveryAddress = buildDeliveryAddress(address, formData.apartment);
+
         const orderData: OrderData = {
             address,
             items: items.map(item => ({
@@ -411,6 +426,7 @@ export default function Basket() {
             setOrderConfirmation({
                 isConfirmed: true,
                 orderNumber: result.orderNumber,
+                deliveryAddress,
             });
 
             closeModal();
@@ -433,6 +449,7 @@ export default function Basket() {
         setOrderConfirmation({
             isConfirmed: false,
             orderNumber: undefined,
+            deliveryAddress: undefined,
         });
 
         setShowModal(false);
@@ -729,7 +746,9 @@ export default function Basket() {
                                 Курьер скоро приедет по адресу:
                             </p>
 
-                            <p className="delivery-address">{address}</p>
+                            <p className="delivery-address">
+                                {orderConfirmation.deliveryAddress || address}
+                            </p>
 
                             <button
                                 type="button"
