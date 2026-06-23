@@ -5,7 +5,6 @@ import { addToBasket, removeFromBasket } from '../app/basketSlice';
 
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
-import defaultImage from '../../public/videos/defaultAnimation.mp4';
 
 type ProductLike = {
     id?: string | number;
@@ -79,26 +78,15 @@ export default function ProductCard(props: ProductCardProps) {
     return (
         <article className="product-card">
             <div className="product-card__image-block">
-                {image ? (
-                    <img
-                        className="products-card__image"
-                        src={image || "/product-placeholder.png"}
-                        alt={title}
-                        onError={(event) => {
-                            event.currentTarget.src = "/product-placeholder.png";
-                        }}
-                    />
-                ) : (
-                    <video
-                        className="product-card__default"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                    >
-                        <source src={defaultImage} type="video/mp4" />
-                    </video>
-                )}
+                <img
+                    className="products-card__image"
+                    src={image?.trim() || "/product-placeholder.png"}
+                    alt={title}
+                    onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = "/product-placeholder.png";
+                    }}
+                />
 
                 {quantity > 0 && (
                     <div className="product-card__count">
