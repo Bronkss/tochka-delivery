@@ -8,6 +8,7 @@ import { Provider } from 'react-redux';
 import { store } from './app/store';
 import ScrollToTop from "./hooks/ScrollToTop.tsx";
 import CategoryPages from "./pages/CategoryPages.tsx";
+import SearchPages from "./pages/SearchPages.tsx";
 
 createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="/" element={<Home />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/category/:categoryId" element={<CategoryPages />} />
+                    <Route path="/search" element={<SearchPages />} />
                 </Routes>
             </BrowserRouter>
         </StrictMode>

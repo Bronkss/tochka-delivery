@@ -1,41 +1,38 @@
 .category-card__link {
-    text-decoration: none;
     color: inherit;
-    height: 100%;
+    text-decoration: none;
 }
 
 .category-card {
-    display: flex;
-    flex-direction: column;
-    height: 24rem;
-    background: var(--color-grey4);
-    border-radius: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1.2rem;
 
-.category-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    height: 100%;
+    min-height: 24rem;
+    padding: 1.6rem;
+    box-sizing: border-box;
+
+    border-radius: 1.6rem;
+    background: var(--color-primary);
+    box-shadow: 0 1rem 2.2rem rgba(15, 23, 42, 0.08);
 }
 
 .category-card h3 {
-    margin: 1rem;
-    padding-left: 2rem;
-    font-size: 1.8rem;
+    margin: 0;
     color: var(--color-black);
-    font-weight: 600;
-    flex-shrink: 0; /* Запрещаем сжатие заголовка */
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1.2;
 }
 
 .category-card img {
-    width: 100%;
-    height: auto;
-    max-height: 150px;
+    align-self: center;
+    justify-self: center;
+
+    width: min(100%, 18rem);
+    height: 14rem;
+
     object-fit: contain;
-    margin: auto; /* Центрируем изображение */
-    padding: 0 1rem 1rem;
     display: block;
-    flex-grow: 1; /* Занимаем все доступное пространство */
 }
