@@ -49,7 +49,7 @@ export default function Header() {
 
                 <input
                     className="header__input-block__search-input"
-                    placeholder="Искать в Роднике"
+                    placeholder="Искать в Точке"
                     type="text"
                     value={searchValue}
                     onChange={(event) => setSearchValue(event.target.value)}

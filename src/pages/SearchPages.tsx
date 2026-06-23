@@ -104,7 +104,7 @@ export default function SearchPages() {
                         key={product.id}
                         id={String(product.id)}
                         title={product.name}
-                        image={product.image || "/product-placeholder.png"}
+                        image={product.image?.trim() || "/product-placeholder.png"}
                         weight={0}
                         price={Math.floor(product.sellingPrice || 0)}
                     />
