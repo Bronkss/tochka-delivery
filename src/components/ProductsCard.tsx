@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import type { AppDispatch } from '../app/store';
-import { addToBasket } from '../app/basketSlice';
+import type { AppDispatch, RootState } from '../app/store';
+import { addToBasket, removeFromBasket } from '../app/basketSlice';
 
 import addIcon from '../assets/icons/add-to-basket.svg';
+import removeIcon from '../assets/icons/remove-from-basket.svg';
 
 interface ProductsCardProps {
     id: string;
@@ -39,6 +40,12 @@ export default function ProductsCard({
                                      }: ProductsCardProps) {
     const dispatch = useDispatch<AppDispatch>();
 
+    const basketItem = useSelector((state: RootState) =>
+        state.basket.items.find(item => item.id === id)
+    );
+
+    const quantity = basketItem?.quantity ?? 0;
+
     const [imageSrc, setImageSrc] = useState<string>(() =>
         getSafeImageSrc(image)
     );
@@ -47,11 +54,7 @@ export default function ProductsCard({
         setImageSrc(getSafeImageSrc(image));
     }, [image]);
 
-    const handleImageError = () => {
-        setImageSrc(PRODUCT_PLACEHOLDER);
-    };
-
-    const handleAddToBasket = () => {
+    const handleAdd = () => {
         dispatch(addToBasket({
             id,
             title,
@@ -59,6 +62,10 @@ export default function ProductsCard({
             weight: String(weight || ''),
             price,
         }));
+    };
+
+    const handleRemove = () => {
+        dispatch(removeFromBasket(id));
     };
 
     return (
@@ -69,35 +76,61 @@ export default function ProductsCard({
                     src={imageSrc}
                     alt={title}
                     loading="lazy"
-                    onError={handleImageError}
+                    onError={() => {
+                        setImageSrc(PRODUCT_PLACEHOLDER);
+                    }}
                 />
             </div>
 
-            <div className="product-card__content">
-                <h3 className="product-card__title">
-                    {title}
-                </h3>
+            <div className="product-card__description">
+                <h3>{title}</h3>
 
                 {Boolean(weight) && Number(weight) !== 0 && (
                     <span className="product-card__weight">
                         {weight}
                     </span>
                 )}
+            </div>
 
-                <div className="product-card__bottom">
-                    <span className="product-card__price">
-                        {price} ₽
-                    </span>
+            <div className="product-card__footer">
+                <span className="product-card__price">
+                    {price} ₽
+                </span>
 
+                {quantity > 0 ? (
+                    <div className="product-card__counter">
+                        <button
+                            type="button"
+                            className="product-card__counter-button"
+                            onClick={handleRemove}
+                            aria-label={`Убрать ${title} из корзины`}
+                        >
+                            <img src={removeIcon} alt="" />
+                        </button>
+
+                        <span className="product-card__quantity">
+                            {quantity}
+                        </span>
+
+                        <button
+                            type="button"
+                            className="product-card__counter-button"
+                            onClick={handleAdd}
+                            aria-label={`Добавить ещё ${title}`}
+                        >
+                            <img src={addIcon} alt="" />
+                        </button>
+                    </div>
+                ) : (
                     <button
                         type="button"
                         className="product-card__add-button"
-                        onClick={handleAddToBasket}
+                        onClick={handleAdd}
                         aria-label={`Добавить ${title} в корзину`}
                     >
                         <img src={addIcon} alt="" />
                     </button>
-                </div>
+                )}
             </div>
         </article>
     );
