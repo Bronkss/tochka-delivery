@@ -1,98 +1,76 @@
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 
-import type { AppDispatch, RootState } from '../app/store';
-import { addToBasket, removeFromBasket } from '../app/basketSlice';
+import type { AppDispatch } from '../app/store';
+import { addToBasket } from '../app/basketSlice';
 
 import addIcon from '../assets/icons/add-to-basket.svg';
-import removeIcon from '../assets/icons/remove-from-basket.svg';
 
-type ProductLike = {
-    id?: string | number;
-    title?: string;
-    name?: string;
-    price?: number;
-    image?: string;
-    imageUrl?: string;
-    weight?: string | number | null;
-};
-
-type ProductCardProps = ProductLike & {
-    product?: ProductLike;
-};
-
-function normalizeText(value: unknown): string {
-    if (value === null || value === undefined) return '';
-
-    const text = String(value).trim();
-
-    if (!text || text === '0' || text.toLowerCase() === 'null') {
-        return '';
-    }
-
-    return text;
+interface ProductsCardProps {
+    id: string;
+    title: string;
+    image?: string | null;
+    weight: number | string;
+    price: number;
 }
 
-function normalizePrice(value: unknown): number {
-    const price = Number(value);
+const PRODUCT_PLACEHOLDER = '/product-placeholder.png';
 
-    if (!Number.isFinite(price) || price < 0) {
-        return 0;
+function getSafeImageSrc(image?: string | null): string {
+    if (typeof image !== 'string') {
+        return PRODUCT_PLACEHOLDER;
     }
 
-    return price;
+    const value = image.trim();
+
+    if (!value) {
+        return PRODUCT_PLACEHOLDER;
+    }
+
+    return value;
 }
 
-export default function ProductCard(props: ProductCardProps) {
+export default function ProductsCard({
+                                         id,
+                                         title,
+                                         image,
+                                         weight,
+                                         price,
+                                     }: ProductsCardProps) {
     const dispatch = useDispatch<AppDispatch>();
 
-    const source = props.product ?? props;
-
-    const title = normalizeText(source.title ?? source.name) || 'Товар';
-    const id = String(source.id ?? title);
-    const price = normalizePrice(source.price);
-    const image = normalizeText(source.image ?? source.imageUrl);
-    const weight = normalizeText(source.weight);
-
-    const basketItem = useSelector((state: RootState) =>
-        state.basket.items.find(item => item.id === id)
+    const [imageSrc, setImageSrc] = useState<string>(() =>
+        getSafeImageSrc(image)
     );
 
-    const quantity = basketItem?.quantity ?? 0;
+    useEffect(() => {
+        setImageSrc(getSafeImageSrc(image));
+    }, [image]);
 
-    const handleAdd = () => {
-        dispatch(
-            addToBasket({
-                id,
-                title,
-                price,
-                image: image || undefined,
-                weight,
-            })
-        );
+    const handleImageError = () => {
+        setImageSrc(PRODUCT_PLACEHOLDER);
     };
 
-    const handleRemove = () => {
-        dispatch(removeFromBasket(id));
+    const handleAddToBasket = () => {
+        dispatch(addToBasket({
+            id,
+            title,
+            image: imageSrc,
+            weight: String(weight || ''),
+            price,
+        }));
     };
 
     return (
         <article className="product-card">
             <div className="product-card__image-block">
                 <img
-                    className="products-card__image"
-                    src={image?.trim() || "/product-placeholder.png"}
+                    className="product-card__image products-card__image"
+                    src={imageSrc}
                     alt={title}
-                    onError={(event) => {
-                        event.currentTarget.onerror = null;
-                        event.currentTarget.src = "/product-placeholder.png";
-                    }}
+                    loading="lazy"
+                    onError={handleImageError}
                 />
-
-                {quantity > 0 && (
-                    <div className="product-card__count">
-                        {quantity}
-                    </div>
-                )}
             </div>
 
             <div className="product-card__content">
@@ -100,47 +78,26 @@ export default function ProductCard(props: ProductCardProps) {
                     {title}
                 </h3>
 
-                {weight && (
+                {Boolean(weight) && Number(weight) !== 0 && (
                     <span className="product-card__weight">
                         {weight}
                     </span>
                 )}
 
-                {quantity > 0 ? (
-                    <div className="product-card__controls">
-                        <button
-                            type="button"
-                            className="product-card__round-button"
-                            onClick={handleRemove}
-                            aria-label={`Убрать ${title}`}
-                        >
-                            <img src={removeIcon} alt="" />
-                        </button>
+                <div className="product-card__bottom">
+                    <span className="product-card__price">
+                        {price} ₽
+                    </span>
 
-                        <span className="product-card__price">
-                            {price} ₽
-                        </span>
-
-                        <button
-                            type="button"
-                            className="product-card__round-button"
-                            onClick={handleAdd}
-                            aria-label={`Добавить ${title}`}
-                        >
-                            <img src={addIcon} alt="" />
-                        </button>
-                    </div>
-                ) : (
                     <button
                         type="button"
-                        className="product-card__buy-button"
-                        onClick={handleAdd}
+                        className="product-card__add-button"
+                        onClick={handleAddToBasket}
                         aria-label={`Добавить ${title} в корзину`}
                     >
-                        <span>{price} ₽</span>
                         <img src={addIcon} alt="" />
                     </button>
-                )}
+                </div>
             </div>
         </article>
     );
