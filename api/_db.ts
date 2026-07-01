@@ -14,7 +14,9 @@ export function getPool(): Pool {
 
         pool = new Pool({
             connectionString: process.env.DATABASE_URL,
-            max: 1,
+            max: 3,
+            idleTimeoutMillis: 30000,
+            connectionTimeoutMillis: 30000,
             ssl: isLocalDatabase
                 ? false
                 : {
@@ -24,4 +26,12 @@ export function getPool(): Pool {
     }
 
     return pool;
+}
+
+export function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return 'Unknown error';
 }
