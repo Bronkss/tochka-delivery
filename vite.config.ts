@@ -6,12 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://tochka-delivery.vercel.app',
         changeOrigin: true,
-      },
-      '/send-order': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
+        secure: true,
       },
     },
   },
