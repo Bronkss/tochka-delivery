@@ -1,114 +1,76 @@
-import pg from 'pg';
-let cachedPool = null;
-function getPool() {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-        throw new Error('DATABASE_URL не задана');
+import { getErrorMessage, getPool } from '../../../server/db.js';
+function toNumber(value) {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) {
+        return 0;
     }
-    if (!cachedPool) {
-        cachedPool = new pg.Pool({
-            connectionString: databaseUrl,
-            ssl: {
-                rejectUnauthorized: false,
-            },
-            max: 5,
-            idleTimeoutMillis: 30_000,
-            connectionTimeoutMillis: 10_000,
+    return numberValue;
+}
+function getQueryValue(value) {
+    if (Array.isArray(value)) {
+        return String(value[0] ?? '');
+    }
+    return String(value ?? '');
+}
+export default async function handler(req, res) {
+    if (req.method !== 'GET') {
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed',
         });
     }
-    return cachedPool;
-}
-function getErrorMessage(error) {
-    return error instanceof Error ? error.message : String(error);
-}
-function toProductUnit(value) {
-    return value === 'weight' ? 'weight' : 'piece';
-}
-function normalizeImageUrl(imageUrl) {
-    if (!imageUrl)
-        return '';
-    const value = imageUrl.trim();
-    if (!value)
-        return '';
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-        return value;
+    const category = getQueryValue(req.query.category) ||
+        getQueryValue(req.query.categoryName) ||
+        getQueryValue(req.query.categoryId);
+    if (!category.trim()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Category is required',
+        });
     }
-    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL?.replace(/\/$/, '');
-    if (blobBaseUrl && value.startsWith('/products/')) {
-        return `${blobBaseUrl}${value}`;
-    }
-    if (blobBaseUrl && value.startsWith('products/')) {
-        return `${blobBaseUrl}/${value}`;
-    }
-    return value;
-}
-function mapProduct(row) {
-    return {
-        id: Number(row.id),
-        name: row.name || '',
-        category: row.category || '',
-        barcode: row.barcode || '',
-        purchasePrice: Number(row.purchase_price ?? 0),
-        sellingPrice: Number(row.selling_price ?? 0),
-        unit: toProductUnit(row.unit),
-        stock: Number(row.stock ?? 0),
-        minStock: Number(row.min_stock ?? 0),
-        image: normalizeImageUrl(row.image_url || row.image),
-    };
-}
-function json(data, status = 200) {
-    return Response.json(data, {
-        status,
-        headers: {
-            'Cache-Control': 'no-store',
-        },
-    });
-}
-function getCategoryFromRequest(request) {
-    const url = new URL(request.url);
-    const fromQuery = url.searchParams.get('category');
-    if (fromQuery) {
-        return fromQuery;
-    }
-    const match = url.pathname.match(/^\/api\/categories\/(.+)\/products$/);
-    if (!match?.[1]) {
-        return '';
-    }
-    return decodeURIComponent(match[1]);
-}
-export async function GET(request) {
+    const startedAt = Date.now();
     try {
-        const category = getCategoryFromRequest(request).trim();
-        if (!category) {
-            return json({
-                ok: false,
-                message: 'Категория не передана',
-            }, 400);
-        }
-        const result = await getPool().query(`
-            SELECT
-                id,
-                name,
-                category,
-                barcode,
-                purchase_price,
-                selling_price,
-                unit,
-                stock,
-                min_stock,
-                image_url
-            FROM products
-            WHERE LOWER(TRIM(category)) = LOWER(TRIM($1))
-            ORDER BY id DESC
-        `, [category]);
-        return json(result.rows.map(mapProduct));
+        console.log(`GET /api/categories/${category}/products started`);
+        const pool = getPool();
+        const result = await pool.query(`
+                SELECT
+                    id,
+                    name,
+                    category,
+                    barcode,
+                    purchase_price,
+                    selling_price,
+                    unit,
+                    stock,
+                    min_stock,
+                    image_url AS image
+                FROM products
+                WHERE stock > 0
+                  AND category = $1
+                ORDER BY id ASC
+                LIMIT 200
+            `, [category]);
+        const products = result.rows.map((row) => ({
+            id: Number(row.id),
+            name: row.name,
+            category: row.category || '',
+            barcode: row.barcode || '',
+            purchasePrice: toNumber(row.purchase_price),
+            sellingPrice: toNumber(row.selling_price),
+            unit: row.unit === 'weight' ? 'weight' : 'piece',
+            stock: Math.floor(toNumber(row.stock)),
+            minStock: Math.floor(toNumber(row.min_stock)),
+            image: row.image || '',
+        }));
+        console.log(`GET /api/categories/${category}/products rows: ${products.length}`);
+        console.log(`GET /api/categories/${category}/products completed in ${Date.now() - startedAt}ms`);
+        return res.status(200).json(products);
     }
     catch (error) {
-        console.error('GET /api/categories/[category]/products error:', error);
-        return json({
-            ok: false,
-            message: 'Ошибка при получении товаров категории',
-            error: getErrorMessage(error),
-        }, 500);
+        console.error(`GET /api/categories/${category}/products error:`, error);
+        return res.status(500).json({
+            success: false,
+            message: getErrorMessage(error),
+        });
     }
 }

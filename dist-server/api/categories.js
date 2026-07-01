@@ -1,98 +1,52 @@
-import pg from 'pg';
-let cachedPool = null;
-function getPool() {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-        throw new Error('DATABASE_URL не задана');
+import { getErrorMessage, getPool } from '../server/db.js';
+function toNumber(value) {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) {
+        return 0;
     }
-    if (!cachedPool) {
-        cachedPool = new pg.Pool({
-            connectionString: databaseUrl,
-            ssl: {
-                rejectUnauthorized: false,
-            },
-            max: 5,
-            idleTimeoutMillis: 30_000,
-            connectionTimeoutMillis: 10_000,
+    return numberValue;
+}
+export default async function handler(req, res) {
+    if (req.method !== 'GET') {
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed',
         });
     }
-    return cachedPool;
-}
-function getErrorMessage(error) {
-    return error instanceof Error ? error.message : String(error);
-}
-function normalizeImageUrl(imageUrl) {
-    if (!imageUrl)
-        return '';
-    const value = imageUrl.trim();
-    if (!value)
-        return '';
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-        return value;
-    }
-    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL?.replace(/\/$/, '');
-    if (blobBaseUrl && value.startsWith('/products/')) {
-        return `${blobBaseUrl}${value}`;
-    }
-    if (blobBaseUrl && value.startsWith('products/')) {
-        return `${blobBaseUrl}/${value}`;
-    }
-    return value;
-}
-function json(data, status = 200) {
-    return Response.json(data, {
-        status,
-        headers: {
-            'Cache-Control': 'no-store',
-        },
-    });
-}
-export async function GET() {
+    const startedAt = Date.now();
     try {
-        const result = await getPool().query(`
-            WITH category_counts AS (
-                SELECT 
-                    category AS name,
-                    COUNT(*) AS products_count
-                FROM products
-                WHERE category IS NOT NULL 
-                  AND TRIM(category) <> ''
-                GROUP BY category
-            ),
-            category_images AS (
-                SELECT DISTINCT ON (category)
-                    category AS name,
-                    image_url AS image
-                FROM products
-                WHERE category IS NOT NULL
-                  AND TRIM(category) <> ''
-                  AND image_url IS NOT NULL
-                  AND TRIM(image_url) <> ''
-                ORDER BY category, id DESC
-            )
+        console.log('GET /api/categories started');
+        const pool = getPool();
+        const result = await pool.query(`
             SELECT
-                category_counts.name AS id,
-                category_counts.name AS name,
-                category_images.image,
-                category_counts.products_count
-            FROM category_counts
-            LEFT JOIN category_images
-                ON category_images.name = category_counts.name
-            ORDER BY category_counts.name ASC
+                category AS name,
+                COALESCE(
+                    MIN(NULLIF(image_url, '')),
+                    ''
+                ) AS image,
+                COUNT(*)::int AS products_count
+            FROM products
+            WHERE stock > 0
+              AND category IS NOT NULL
+              AND TRIM(category) <> ''
+            GROUP BY category
+            ORDER BY category ASC
         `);
-        return json(result.rows.map(row => ({
-            id: row.id,
+        const categories = result.rows.map((row) => ({
+            id: row.name,
             name: row.name,
-            image: normalizeImageUrl(row.image),
-            productsCount: Number(row.products_count),
-        })));
+            image: row.image || '',
+            productsCount: toNumber(row.products_count),
+        }));
+        console.log(`GET /api/categories rows: ${categories.length}`);
+        console.log(`GET /api/categories completed in ${Date.now() - startedAt}ms`);
+        return res.status(200).json(categories);
     }
     catch (error) {
         console.error('GET /api/categories error:', error);
-        return json({
-            ok: false,
-            message: 'Ошибка при получении категорий',
-            error: getErrorMessage(error),
-        }, 500);
+        return res.status(500).json({
+            success: false,
+            message: getErrorMessage(error),
+        });
     }
 }

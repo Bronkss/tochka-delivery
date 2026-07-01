@@ -53,12 +53,12 @@ export default async function handler(
                 unit,
                 stock,
                 min_stock,
-                image
+                image_url AS image
             FROM products
+            WHERE stock > 0
             ORDER BY id ASC
+            LIMIT 200
         `);
-
-        console.log(`GET /api/products completed in ${Date.now() - startedAt}ms`);
 
         const products = result.rows.map((row) => ({
             id: Number(row.id),
@@ -72,6 +72,9 @@ export default async function handler(
             minStock: Math.floor(toNumber(row.min_stock)),
             image: row.image || '',
         }));
+
+        console.log(`GET /api/products rows: ${products.length}`);
+        console.log(`GET /api/products completed in ${Date.now() - startedAt}ms`);
 
         return res.status(200).json(products);
     } catch (error) {
