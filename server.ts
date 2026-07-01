@@ -4,8 +4,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
-dns.setDefaultResultOrder('ipv4first');
-
 import * as productsModule from './api/products.js';
 import * as categoriesModule from './api/categories.js';
 import * as categoryProductsModule from './api/categories/[category]/products.js';
@@ -28,6 +26,7 @@ import * as whoamiModule from './api/whoami.js';
 import * as dbTestModule from './api/db-test.js';
 import * as debugDbModule from './api/debug/db.js';
 
+dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
 type ApiHandler = (req: any, res: any) => unknown | Promise<unknown>;

@@ -57,7 +57,6 @@ export default async function handler(
             FROM products
             WHERE stock > 0
             ORDER BY id ASC
-            LIMIT 200
         `);
 
         const products = result.rows.map((row) => ({

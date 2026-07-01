@@ -48,7 +48,6 @@ export default async function handler(req, res) {
                 WHERE stock > 0
                   AND category = $1
                 ORDER BY id ASC
-                LIMIT 200
             `, [category]);
         const products = result.rows.map((row) => ({
             id: Number(row.id),

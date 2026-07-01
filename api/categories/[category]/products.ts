@@ -79,7 +79,6 @@ export default async function handler(
                 WHERE stock > 0
                   AND category = $1
                 ORDER BY id ASC
-                LIMIT 200
             `,
             [category]
         );
