@@ -8,5 +8,5 @@ build:
   additionalCommands: npm install --include=optional && npm run build:all
 
 run:
-  command: npm run start
+  command: node dist-server/server.js
   containerPort: 3000
