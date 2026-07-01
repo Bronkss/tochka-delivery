@@ -1,13 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const { getPool } = await import('./_db.js');
-
-const {
-    buildOrderKeyboard,
-    formatOrderMessage,
-    sendTelegramMessage,
-} = await import('./_telegram.js');
-
 interface IncomingOrderItem {
     id: string;
     title: string;
@@ -39,7 +31,7 @@ interface NormalizedOrderItem {
 function setCors(res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
@@ -96,6 +88,13 @@ export default async function handler(
         return res.status(200).end();
     }
 
+    if (req.method === 'GET') {
+        return res.status(200).json({
+            success: true,
+            message: 'Orders API is alive. Use POST /api/orders to create an order.',
+        });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({
             success: false,
@@ -104,6 +103,17 @@ export default async function handler(
     }
 
     try {
+        const { getPool } = await import('./_db.js');
+        const { requireUser } = await import('./_auth.js');
+
+        const {
+            buildOrderKeyboard,
+            formatOrderMessage,
+            sendTelegramMessage,
+        } = await import('./_telegram.js');
+
+        const user = await requireUser(req);
+
         const pool = getPool();
         const order = getBody<IncomingOrder>(req);
 
@@ -142,6 +152,7 @@ export default async function handler(
             id: number;
             order_number: string;
             status: string;
+            user_id: number | null;
             address: string;
             customer_name: string;
             customer_phone: string;
@@ -159,6 +170,7 @@ export default async function handler(
             const orderResult = await client.query(
                 `
                     INSERT INTO orders (
+                        user_id,
                         address,
                         customer_name,
                         customer_phone,
@@ -167,11 +179,12 @@ export default async function handler(
                         comments,
                         total
                     )
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                     RETURNING
                         id,
                         order_number,
                         status,
+                        user_id,
                         address,
                         customer_name,
                         customer_phone,
@@ -183,6 +196,7 @@ export default async function handler(
                         created_at
                 `,
                 [
+                    user.id,
                     order.address?.trim(),
                     order.customer?.name?.trim(),
                     order.customer?.phone?.trim(),
@@ -305,9 +319,18 @@ export default async function handler(
     } catch (error) {
         console.error('Create order error:', error);
 
+        if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+            return res.status(401).json({
+                success: false,
+                message: 'Для оформления заказа нужно войти в аккаунт',
+            });
+        }
+
         return res.status(500).json({
             success: false,
-            message: 'Ошибка создания заказа',
+            message: error instanceof Error
+                ? error.message
+                : 'Ошибка создания заказа',
         });
     }
 }

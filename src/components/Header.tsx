@@ -5,6 +5,8 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import authIcon from "../assets/icons/auth-icon.svg";
 import supportIcon from "../assets/icons/support-icon.svg";
 import searchIcon from "../assets/icons/search-icon.svg";
+import { useSelector } from 'react-redux';
+import type { RootState } from '../app/store';
 
 export default function Header() {
     const navigate = useNavigate();
@@ -12,6 +14,7 @@ export default function Header() {
 
     const searchFromUrl = searchParams.get("search") ?? "";
     const [searchValue, setSearchValue] = useState(searchFromUrl);
+    const user = useSelector((state: RootState) => state.auth.user);
 
     useEffect(() => {
         setSearchValue(searchFromUrl);
@@ -60,18 +63,21 @@ export default function Header() {
             </form>
 
             <div className="header__button-block">
-                <Link to="/auth" className="header__button-block__auth">
-                    <img src={authIcon} alt="Иконка авторизации" />
-                    Войти
+                <Link
+                    to={user ? '/account' : '/auth'}
+                    className="header__button-block__auth"
+                >
+                    <img src={authIcon} alt="Иконка авторизации"/>
+                    {user ? 'ЛК' : 'Войти'}
                 </Link>
 
                 <a
-                    href="https://t.me/RodnikSupport_bot"
+                    href="https://t.me/boroda_slim"
                     className="header__button-block__support"
                     target="_blank"
                     rel="noreferrer"
                 >
-                    <img src={supportIcon} alt="Иконка поддержки" />
+                    <img src={supportIcon} alt="Иконка поддержки"/>
                 </a>
             </div>
         </header>

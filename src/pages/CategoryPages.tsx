@@ -60,23 +60,27 @@ export default function CategoryPages() {
         fetchProducts();
     }, [categoryName]);
 
+    const availableProducts = useMemo(() => {
+        return products.filter((product) => product.stock > 0);
+    }, [products]);
+
     const visibleProducts = useMemo(() => {
         const normalizedQuery = normalizeSearchText(searchQuery);
 
         if (!normalizedQuery) {
-            return products;
+            return availableProducts;
         }
 
-        return products.filter((product) => {
+        return availableProducts.filter((product) => {
             const productName = normalizeSearchText(product.name ?? "");
-            const productCategory = normalizeSearchText(categoryName);
+            const productCategory = normalizeSearchText(product.category ?? categoryName);
 
             return (
                 productName.includes(normalizedQuery) ||
                 productCategory.includes(normalizedQuery)
             );
         });
-    }, [products, searchQuery, categoryName]);
+    }, [availableProducts, searchQuery, categoryName]);
 
     const pageTitle = searchQuery
         ? `Поиск: ${searchQuery}`
@@ -97,7 +101,11 @@ export default function CategoryPages() {
                     <p>Товары в этой категории не найдены</p>
                 )}
 
-                {!isLoading && !error && products.length > 0 && visibleProducts.length === 0 && (
+                {!isLoading && !error && products.length > 0 && availableProducts.length === 0 && (
+                    <p>Все товары в этой категории закончились</p>
+                )}
+
+                {!isLoading && !error && availableProducts.length > 0 && visibleProducts.length === 0 && (
                     <p>По запросу «{searchQuery}» ничего не найдено</p>
                 )}
 
@@ -107,8 +115,9 @@ export default function CategoryPages() {
                         id={String(product.id)}
                         title={product.name}
                         image={product.image}
-                        weight={0}
+                        weight={product.unit === "weight" ? "кг" : ""}
                         price={Math.floor(product.sellingPrice || 0)}
+                        stock={product.stock}
                     />
                 ))}
             </ProductsContent>

@@ -11,12 +11,12 @@
 @import "components/Basket.css";
 @import "components/ProductsContent.css";
 @import "components/ProductCard.css";
-@import "components/Footer.css";
 @import "components/Map.css";
 
 /* Pages */
 @import "pages/Auth.css";
 @import "pages/NotFoundPage.css";
+@import "pages/Profile.css";
 
 /* Global layout */
 
