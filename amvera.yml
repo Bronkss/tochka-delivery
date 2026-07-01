@@ -2,10 +2,10 @@ meta:
   environment: node
   toolchain:
     name: npm
-    version: 20
+    version: 22
 
 build:
-  additionalCommands: npm run build:all
+  additionalCommands: npm install --include=optional && npm run build:all
 
 run:
   command: npm run start

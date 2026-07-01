@@ -1,13 +1,10 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { allowMethods, applyCors, setNoStore } from '../server/http.js';
-
-export default function handler(req: VercelRequest, res: VercelResponse) {
-    if (applyCors(req, res)) return;
-
+export default function handler(req, res) {
+    if (applyCors(req, res))
+        return;
     setNoStore(res);
-
-    if (allowMethods(req, res, ['GET'])) return;
-
+    if (allowMethods(req, res, ['GET']))
+        return;
     res.status(200).json({
         server: 'vercel-functions-neon-version',
         time: new Date().toISOString(),

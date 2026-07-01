@@ -12,6 +12,7 @@
   },
   "include": [
     "server.ts",
-    "api/**/*.ts"
+    "api/**/*.ts",
+    "server/**/*.ts"
   ]
 }

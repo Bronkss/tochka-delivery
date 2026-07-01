@@ -1,60 +1,25 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getErrorMessage, getPool } from '../../server/db.js';
 import { allowMethods, applyCors, setNoStore } from '../../server/http.js';
-
-interface CountRow {
-    count: string;
-}
-
-interface DebugDbInfoRow {
-    database: string;
-    user: string;
-    host: string | null;
-    port: number;
-}
-
-interface CategoryCountRow {
-    category: string | null;
-    count: string;
-}
-
-interface ProductPreviewRow {
-    id: number;
-    name: string;
-    category: string;
-    barcode: string;
-    purchase_price: string;
-    selling_price: string;
-    unit: string;
-    stock: string;
-    min_stock: string;
-    image_url_preview: string | null;
-}
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (applyCors(req, res)) return;
-
+export default async function handler(req, res) {
+    if (applyCors(req, res))
+        return;
     setNoStore(res);
-
-    if (allowMethods(req, res, ['GET'])) return;
-
+    if (allowMethods(req, res, ['GET']))
+        return;
     try {
         const pool = getPool();
-
-        const dbInfo = await pool.query<DebugDbInfoRow>(`
+        const dbInfo = await pool.query(`
             SELECT 
                 current_database() AS database,
                 current_user AS user,
                 inet_server_addr() AS host,
                 inet_server_port() AS port
         `);
-
-        const productsCount = await pool.query<CountRow>(`
+        const productsCount = await pool.query(`
             SELECT COUNT(*) AS count
             FROM products
         `);
-
-        const categoriesCount = await pool.query<CategoryCountRow>(`
+        const categoriesCount = await pool.query(`
             SELECT 
                 category,
                 COUNT(*) AS count
@@ -62,8 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             GROUP BY category
             ORDER BY COUNT(*) DESC
         `);
-
-        const sampleProducts = await pool.query<ProductPreviewRow>(`
+        const sampleProducts = await pool.query(`
             SELECT
                 id,
                 name,
@@ -79,16 +43,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ORDER BY id DESC
             LIMIT 5
         `);
-
         res.status(200).json({
             db: dbInfo.rows[0],
             productsCount: Number(productsCount.rows[0].count),
             categories: categoriesCount.rows,
             sampleProducts: sampleProducts.rows,
         });
-    } catch (error) {
+    }
+    catch (error) {
         console.error('GET /api/debug/db error:', error);
-
         res.status(500).json({
             message: 'Debug error',
             error: getErrorMessage(error),
