@@ -82,6 +82,18 @@ function wrapHandler(
         res: express.Response,
         next: express.NextFunction
     ) => {
+        const timeoutId = setTimeout(() => {
+            if (!res.headersSent) {
+                console.error(`API timeout: ${req.method} ${req.originalUrl}`);
+
+                res.status(504).json({
+                    success: false,
+                    message: 'API timeout',
+                    path: req.originalUrl,
+                });
+            }
+        }, 10000);
+
         try {
             if (getExtraQuery) {
                 setQuery(req, getExtraQuery(req));
@@ -90,6 +102,8 @@ function wrapHandler(
             await handler(req as any, res as any);
         } catch (error) {
             next(error);
+        } finally {
+            clearTimeout(timeoutId);
         }
     };
 }

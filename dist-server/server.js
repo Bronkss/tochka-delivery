@@ -51,6 +51,16 @@ function setQuery(req, extraQuery) {
 }
 function wrapHandler(handler, getExtraQuery) {
     return async (req, res, next) => {
+        const timeoutId = setTimeout(() => {
+            if (!res.headersSent) {
+                console.error(`API timeout: ${req.method} ${req.originalUrl}`);
+                res.status(504).json({
+                    success: false,
+                    message: 'API timeout',
+                    path: req.originalUrl,
+                });
+            }
+        }, 10000);
         try {
             if (getExtraQuery) {
                 setQuery(req, getExtraQuery(req));
@@ -59,6 +69,9 @@ function wrapHandler(handler, getExtraQuery) {
         }
         catch (error) {
             next(error);
+        }
+        finally {
+            clearTimeout(timeoutId);
         }
     };
 }

@@ -1,104 +1,48 @@
-import pg from 'pg';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getErrorMessage, getPool } from '../server/db.js';
 
-type ProductUnit = 'piece' | 'weight';
-
-interface ProductDbRow {
-    id: number | string;
-    name?: string | null;
-    category?: string | null;
-    barcode?: string | null;
-    purchase_price?: number | string | null;
-    selling_price?: number | string | null;
-    min_stock?: number | string | null;
-    unit?: ProductUnit | string | null;
-    stock?: number | string | null;
-    image?: string | null;
-    image_url?: string | null;
+interface ProductRow {
+    id: number;
+    name: string;
+    category: string | null;
+    barcode: string | null;
+    purchase_price: number | string | null;
+    selling_price: number | string | null;
+    unit: string | null;
+    stock: number | string | null;
+    min_stock: number | string | null;
+    image: string | null;
 }
 
-let cachedPool: pg.Pool | null = null;
+function toNumber(value: unknown): number {
+    const numberValue = Number(value);
 
-function getPool(): pg.Pool {
-    const databaseUrl = process.env.DATABASE_URL;
-
-    if (!databaseUrl) {
-        throw new Error('DATABASE_URL не задана');
+    if (!Number.isFinite(numberValue)) {
+        return 0;
     }
 
-    if (!cachedPool) {
-        cachedPool = new pg.Pool({
-            connectionString: databaseUrl,
-            ssl: {
-                rejectUnauthorized: false,
-            },
-            max: 5,
-            idleTimeoutMillis: 30_000,
-            connectionTimeoutMillis: 10_000,
+    return numberValue;
+}
+
+export default async function handler(
+    req: VercelRequest,
+    res: VercelResponse
+) {
+    if (req.method !== 'GET') {
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed',
         });
     }
 
-    return cachedPool;
-}
+    const startedAt = Date.now();
 
-function getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
-}
-
-function toProductUnit(value: unknown): ProductUnit {
-    return value === 'weight' ? 'weight' : 'piece';
-}
-
-function normalizeImageUrl(imageUrl: string | null | undefined): string {
-    if (!imageUrl) return '';
-
-    const value = imageUrl.trim();
-
-    if (!value) return '';
-
-    if (value.startsWith('http://') || value.startsWith('https://')) {
-        return value;
-    }
-
-    const blobBaseUrl = process.env.BLOB_PUBLIC_BASE_URL?.replace(/\/$/, '');
-
-    if (blobBaseUrl && value.startsWith('/products/')) {
-        return `${blobBaseUrl}${value}`;
-    }
-
-    if (blobBaseUrl && value.startsWith('products/')) {
-        return `${blobBaseUrl}/${value}`;
-    }
-
-    return value;
-}
-
-function mapProduct(row: ProductDbRow) {
-    return {
-        id: Number(row.id),
-        name: row.name || '',
-        category: row.category || '',
-        barcode: row.barcode || '',
-        purchasePrice: Number(row.purchase_price ?? 0),
-        sellingPrice: Number(row.selling_price ?? 0),
-        unit: toProductUnit(row.unit),
-        stock: Number(row.stock ?? 0),
-        minStock: Number(row.min_stock ?? 0),
-        image: normalizeImageUrl(row.image_url || row.image),
-    };
-}
-
-function json(data: unknown, status = 200): Response {
-    return Response.json(data, {
-        status,
-        headers: {
-            'Cache-Control': 'no-store',
-        },
-    });
-}
-
-export async function GET() {
     try {
-        const result = await getPool().query<ProductDbRow>(`
+        console.log('GET /api/products started');
+
+        const pool = getPool();
+
+        const result = await pool.query<ProductRow>(`
             SELECT
                 id,
                 name,
@@ -109,19 +53,33 @@ export async function GET() {
                 unit,
                 stock,
                 min_stock,
-                image_url
+                image
             FROM products
-            ORDER BY id DESC
+            ORDER BY id ASC
         `);
 
-        return json(result.rows.map(mapProduct));
+        console.log(`GET /api/products completed in ${Date.now() - startedAt}ms`);
+
+        const products = result.rows.map((row) => ({
+            id: Number(row.id),
+            name: row.name,
+            category: row.category || '',
+            barcode: row.barcode || '',
+            purchasePrice: toNumber(row.purchase_price),
+            sellingPrice: toNumber(row.selling_price),
+            unit: row.unit === 'weight' ? 'weight' : 'piece',
+            stock: Math.floor(toNumber(row.stock)),
+            minStock: Math.floor(toNumber(row.min_stock)),
+            image: row.image || '',
+        }));
+
+        return res.status(200).json(products);
     } catch (error) {
         console.error('GET /api/products error:', error);
 
-        return json({
-            ok: false,
-            message: 'Ошибка при получении товаров',
-            error: getErrorMessage(error),
-        }, 500);
+        return res.status(500).json({
+            success: false,
+            message: getErrorMessage(error),
+        });
     }
 }
