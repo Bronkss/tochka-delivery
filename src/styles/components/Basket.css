@@ -534,6 +534,50 @@
     font-size: 4rem;
 }
 
+.account-contact {
+    display: grid;
+    gap: 1rem;
+
+    margin-bottom: 1.6rem;
+    padding: 1.2rem;
+    box-sizing: border-box;
+
+    border-radius: 1.8rem;
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+}
+
+.account-contact__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+
+    color: var(--color-black);
+    font-size: 1.35rem;
+    line-height: 1.3;
+}
+
+.account-contact__row span {
+    color: var(--color-grey2);
+    font-weight: 800;
+}
+
+.account-contact__row strong {
+    text-align: right;
+    font-weight: 900;
+    word-break: break-word;
+}
+
+.account-contact__warning {
+    margin: 0 0 1.6rem;
+
+    color: #d66a00;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
 .order-number,
 .confirmation-message {
     color: #555555;

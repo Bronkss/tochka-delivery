@@ -31,16 +31,8 @@ interface BasketItemProps {
 }
 
 interface FormData {
-    name: string;
-    phone: string;
-    apartment: string;
     paymentMethod: 'cash' | 'card';
     comments: string;
-}
-
-interface FormErrors {
-    name?: string;
-    phone?: string;
 }
 
 interface OrderData {
@@ -55,7 +47,6 @@ interface OrderData {
     customer: {
         name: string;
         phone: string;
-        apartment?: string;
     };
     paymentMethod: 'cash' | 'card';
     comments?: string;
@@ -74,17 +65,6 @@ interface CreateOrderResponse {
     orderNumber?: string;
     telegramSent?: boolean;
     message?: string;
-}
-
-function buildDeliveryAddress(address: string, apartment?: string): string {
-    const cleanAddress = address.trim();
-    const cleanApartment = apartment?.trim();
-
-    if (!cleanApartment) {
-        return cleanAddress;
-    }
-
-    return `${cleanAddress}, ${cleanApartment}`;
 }
 
 function BasketItem({ item, onRemove, onAdd }: BasketItemProps) {
@@ -159,6 +139,8 @@ export default function Basket() {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
+    const user = useSelector((state: RootState) => state.auth.user);
+
     const address = useSelector((state: RootState) => state.address.value);
     const isValid = useSelector((state: RootState) => state.address.isValid);
     const buttonCheck = useSelector((state: RootState) => state.address.buttonCheck);
@@ -167,13 +149,9 @@ export default function Basket() {
 
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [errors, setErrors] = useState<FormErrors>({});
     const [isMobile, setIsMobile] = useState(false);
 
     const [formData, setFormData] = useState<FormData>({
-        name: '',
-        phone: '',
-        apartment: '',
         paymentMethod: 'cash',
         comments: '',
     });
@@ -188,6 +166,9 @@ export default function Basket() {
     const productsCardRef = useRef<HTMLElement | null>(null);
     const originalHeaderZIndexRef = useRef<string>('');
     const originalProductsZIndexRef = useRef<string>('');
+
+    const customerName = user?.name?.trim() || '';
+    const customerPhone = user?.phone?.trim() || '';
 
     const getCurrentZIndex = (element: HTMLElement): number => {
         const zIndex = window.getComputedStyle(element).zIndex;
@@ -290,29 +271,6 @@ export default function Basket() {
         }));
     };
 
-    const validateForm = (): boolean => {
-        const newErrors: FormErrors = {};
-
-        if (!formData.name.trim()) {
-            newErrors.name = 'Пожалуйста, введите ваше имя';
-        } else if (formData.name.trim().length < 2) {
-            newErrors.name = 'Имя должно содержать минимум 2 символа';
-        }
-
-        const phoneRegex =
-            /^(\+7|8)[\s-]?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$/;
-
-        if (!formData.phone.trim()) {
-            newErrors.phone = 'Пожалуйста, введите ваш телефон';
-        } else if (!phoneRegex.test(formData.phone.trim())) {
-            newErrors.phone = 'Введите корректный номер телефона';
-        }
-
-        setErrors(newErrors);
-
-        return Object.keys(newErrors).length === 0;
-    };
-
     const handleRemove = (id: string) => {
         dispatch(removeFromBasket(id));
     };
@@ -328,6 +286,11 @@ export default function Basket() {
     };
 
     const openModal = () => {
+        if (!user) {
+            navigate('/auth');
+            return;
+        }
+
         setShowModal(true);
     };
 
@@ -344,6 +307,7 @@ export default function Basket() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(orderData),
             });
 
@@ -365,7 +329,7 @@ export default function Basket() {
             if (!response.ok || !data.success) {
                 return {
                     success: false,
-                    message: data.message || `HTTP error! status: ${response.status}`,
+                    message: data.message || `Ошибка сервера: ${response.status}`,
                 };
             }
 
@@ -375,7 +339,7 @@ export default function Basket() {
 
             return {
                 success: false,
-                message: 'Ошибка при отправке заказа',
+                message: 'Не удалось отправить заказ. Проверь подключение к серверу.',
             };
         }
     };
@@ -383,7 +347,20 @@ export default function Basket() {
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
 
-        if (!validateForm()) return;
+        if (!user) {
+            navigate('/auth');
+            return;
+        }
+
+        if (!customerName) {
+            alert('В аккаунте не указано имя. Заполните имя в личном кабинете.');
+            return;
+        }
+
+        if (!customerPhone) {
+            alert('В аккаунте не указан телефон. Заполните телефон в личном кабинете.');
+            return;
+        }
 
         if (items.length === 0) {
             alert('Корзина пуста');
@@ -397,7 +374,7 @@ export default function Basket() {
 
         setIsSubmitting(true);
 
-        const deliveryAddress = buildDeliveryAddress(address, formData.apartment);
+        const deliveryAddress = address;
 
         const orderData: OrderData = {
             address,
@@ -409,9 +386,8 @@ export default function Basket() {
             })),
             total,
             customer: {
-                name: formData.name.trim(),
-                phone: formData.phone.trim(),
-                apartment: formData.apartment.trim() || undefined,
+                name: customerName,
+                phone: customerPhone,
             },
             paymentMethod: formData.paymentMethod,
             comments: formData.comments.trim() || undefined,
@@ -597,60 +573,27 @@ export default function Basket() {
                                     <div className="form-section">
                                         <h3>Контактные данные</h3>
 
-                                        <div className="input-group">
-                                            <label htmlFor="name">Ваше имя *</label>
+                                        <div className="account-contact">
+                                            <div className="account-contact__row">
+                                                <span>Имя</span>
+                                                <strong>
+                                                    {customerName || 'Не указано'}
+                                                </strong>
+                                            </div>
 
-                                            <input
-                                                id="name"
-                                                name="name"
-                                                type="text"
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                placeholder="Иван Иванов"
-                                                className={errors.name ? 'error' : ''}
-                                            />
-
-                                            {errors.name && (
-                                                <span className="error-message">
-                                                    {errors.name}
-                                                </span>
-                                            )}
+                                            <div className="account-contact__row">
+                                                <span>Телефон</span>
+                                                <strong>
+                                                    {customerPhone || 'Не указан'}
+                                                </strong>
+                                            </div>
                                         </div>
 
-                                        <div className="input-group">
-                                            <label htmlFor="phone">Телефон *</label>
-
-                                            <input
-                                                id="phone"
-                                                name="phone"
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={handleInputChange}
-                                                placeholder="+7 (999) 123-45-67"
-                                                className={errors.phone ? 'error' : ''}
-                                            />
-
-                                            {errors.phone && (
-                                                <span className="error-message">
-                                                    {errors.phone}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="input-group">
-                                            <label htmlFor="apartment">
-                                                Квартира / подъезд / этаж
-                                            </label>
-
-                                            <input
-                                                id="apartment"
-                                                name="apartment"
-                                                type="text"
-                                                value={formData.apartment}
-                                                onChange={handleInputChange}
-                                                placeholder="Например: кв. 12, подъезд 2"
-                                            />
-                                        </div>
+                                        {(!customerName || !customerPhone) && (
+                                            <p className="account-contact__warning">
+                                                Для оформления заказа в аккаунте должны быть указаны имя и телефон.
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="payment-section">
@@ -709,7 +652,11 @@ export default function Basket() {
                                         <button
                                             type="submit"
                                             className="submit-button"
-                                            disabled={isSubmitting}
+                                            disabled={
+                                                isSubmitting ||
+                                                !customerName ||
+                                                !customerPhone
+                                            }
                                         >
                                             {isSubmitting
                                                 ? 'Отправка...'

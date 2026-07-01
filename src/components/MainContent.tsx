@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import CategoryCard from "./CategoryCard.tsx";
 import type { Product } from "../types/product.ts";
 
+const PRODUCT_PLACEHOLDER = "/product-placeholder.png";
+
 function MainContent() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -21,18 +23,13 @@ function MainContent() {
 
                 const data: Product[] = await response.json();
 
+                const availableProducts = data.filter((product) => product.stock > 0);
+
                 console.log("Всего товаров с backend:", data.length);
+                console.log("Товаров в наличии:", availableProducts.length);
                 console.log("Первый товар:", data[0]);
 
-                const categoryStats = data.reduce<Record<string, number>>((acc, product) => {
-                    const category = product.category?.trim() || "БЕЗ КАТЕГОРИИ";
-                    acc[category] = (acc[category] || 0) + 1;
-                    return acc;
-                }, {});
-
-                console.table(categoryStats);
-
-                setProducts(data);
+                setProducts(availableProducts);
             } catch (error) {
                 console.error(error);
                 setError("Ошибка загрузки категорий");
@@ -59,7 +56,7 @@ function MainContent() {
 
         return Array.from(categoriesMap.entries()).map(([categoryName, product]) => ({
             name: categoryName,
-            imageUrl: product.image || "/icons/products.jpg",
+            imageUrl: product.image || PRODUCT_PLACEHOLDER,
             linkId: `/category/${encodeURIComponent(categoryName)}`,
             alt: categoryName,
         }));
