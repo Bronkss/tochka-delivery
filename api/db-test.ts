@@ -1,62 +1,56 @@
-// api/db-test.ts
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getErrorMessage, getPool, getSafeDatabaseInfo } from '../server/db.js';
 
-let cachedPool: any = null;
-
-function json(data: unknown, status = 200) {
-    return Response.json(data, {
-        status,
-        headers: {
-            'Cache-Control': 'no-store',
-        },
-    });
+function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    message: string
+): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_resolve, reject) => {
+            setTimeout(() => {
+                reject(new Error(message));
+            }, timeoutMs);
+        }),
+    ]);
 }
 
-function getErrorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
-}
+export default async function handler(
+    req: VercelRequest,
+    res: VercelResponse
+) {
+    if (req.method !== 'GET') {
+        return res.status(405).json({
+            success: false,
+            message: 'Method not allowed',
+        });
+    }
 
-export async function GET() {
+    const databaseInfo = getSafeDatabaseInfo();
+
     try {
-        const databaseUrl = process.env.DATABASE_URL;
+        const pool = getPool();
 
-        if (!databaseUrl) {
-            return json({
-                ok: false,
-                step: 'env',
-                message: 'DATABASE_URL не найдена в Vercel Environment Variables',
-            }, 500);
-        }
+        const result = await withTimeout(
+            pool.query('SELECT now() as now, current_database() as database_name'),
+            7000,
+            'Database connection timeout after 7 seconds'
+        );
 
-        const pg = await import('pg');
-
-        if (!cachedPool) {
-            cachedPool = new pg.Pool({
-                connectionString: databaseUrl,
-                ssl: {
-                    rejectUnauthorized: false,
-                },
-                max: 5,
-            });
-        }
-
-        const nowResult = await cachedPool.query('SELECT NOW() AS now');
-
-        const productsCountResult = await cachedPool.query(`
-            SELECT COUNT(*) AS count
-            FROM products
-        `);
-
-        return json({
-            ok: true,
-            step: 'db',
-            time: nowResult.rows[0].now,
-            productsCount: Number(productsCountResult.rows[0].count),
+        return res.status(200).json({
+            success: true,
+            message: 'Database connected',
+            databaseInfo,
+            result: result.rows[0],
         });
     } catch (error) {
-        return json({
-            ok: false,
-            step: 'catch',
-            error: getErrorMessage(error),
-        }, 500);
+        console.error('DB test error:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: getErrorMessage(error),
+            databaseInfo,
+        });
     }
 }
