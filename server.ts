@@ -1,7 +1,10 @@
+import dns from 'node:dns';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+
+dns.setDefaultResultOrder('ipv4first');
 
 import * as productsModule from './api/products.js';
 import * as categoriesModule from './api/categories.js';
