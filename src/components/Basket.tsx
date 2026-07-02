@@ -421,7 +421,7 @@ export default function Basket() {
         );
     };
 
-    const handleReturnToMain = () => {
+    const handleGoToOrders = () => {
         setOrderConfirmation({
             isConfirmed: false,
             orderNumber: undefined,
@@ -440,7 +440,7 @@ export default function Basket() {
 
         document.body.classList.remove('body-no-scroll');
 
-        navigate('/');
+        navigate('/account?tab=orders');
     };
 
     if (!address || !isValid || !buttonCheck) {
@@ -689,7 +689,7 @@ export default function Basket() {
 
                             <p className="confirmation-message">
                                 Ваш заказ отправлен в сборку.
-                                <br />
+                                <br/>
                                 Курьер скоро приедет по адресу:
                             </p>
 
@@ -700,9 +700,9 @@ export default function Basket() {
                             <button
                                 type="button"
                                 className="return-button"
-                                onClick={handleReturnToMain}
+                                onClick={handleGoToOrders}
                             >
-                                Вернуться на главную
+                                Перейти в мои заказы
                             </button>
                         </div>
                     </div>

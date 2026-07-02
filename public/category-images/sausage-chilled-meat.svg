@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Колбасы и мясная охлажденная продукция">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7ed"/>
+      <stop offset="1" stop-color="#fee2e2"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dc2626" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".18"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#111827" flood-opacity=".18"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#111827" flood-opacity=".14"/>
+    </filter>
+    <radialGradient id="shine" cx="35%" cy="20%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="420" rx="46" fill="url(#bg)"/>
+  <circle cx="520" cy="80" r="128" fill="url(#shine)" opacity=".7"/>
+  <circle cx="100" cy="360" r="118" fill="#ffffff" opacity=".55"/>
+  <path d="M0 330 C120 260 230 382 336 314 C440 248 505 292 640 244 L640 420 L0 420 Z" fill="#ffffff" opacity=".46"/>
+  
+  <ellipse cx="320" cy="334" rx="190" ry="30" fill="#111827" opacity=".10"/>
+  <g filter="url(#shadow)">
+    <rect x="160" y="214" width="320" height="60" rx="30" fill="#c2410c"/>
+    <circle cx="192" cy="244" r="32" fill="#b45309"/>
+    <circle cx="448" cy="244" r="32" fill="#b45309"/>
+    <ellipse cx="322" cy="194" rx="68" ry="46" fill="#ef4444"/>
+    <path d="M280 180 c42-22 82-14 112 14" stroke="#fecaca" stroke-width="10" stroke-linecap="round" opacity=".7"/>
+  </g>
+</svg>

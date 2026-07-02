@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getErrorMessage, getPool } from '../../../server/db.js';
+import {
+    isRestrictedCategory,
+    RESTRICTED_CATEGORY_NAMES,
+} from '../../../server/restrictedCategories.js';
 
 interface ProductRow {
     id: number;
@@ -32,6 +36,14 @@ function getQueryValue(value: unknown): string {
     return String(value ?? '');
 }
 
+function safeDecode(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
 export default async function handler(
     req: VercelRequest,
     res: VercelResponse
@@ -43,16 +55,24 @@ export default async function handler(
         });
     }
 
-    const category =
+    const rawCategory =
         getQueryValue(req.query.category) ||
         getQueryValue(req.query.categoryName) ||
         getQueryValue(req.query.categoryId);
 
-    if (!category.trim()) {
+    const category = safeDecode(rawCategory).trim();
+
+    if (!category) {
         return res.status(400).json({
             success: false,
             message: 'Category is required',
         });
+    }
+
+    if (isRestrictedCategory(category)) {
+        console.warn(`Restricted category blocked: ${category}`);
+
+        return res.status(200).json([]);
     }
 
     const startedAt = Date.now();
@@ -78,9 +98,12 @@ export default async function handler(
                 FROM products
                 WHERE stock > 0
                   AND category = $1
+                  AND NOT (
+                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($2::text[])
+                  )
                 ORDER BY id ASC
             `,
-            [category]
+            [category, RESTRICTED_CATEGORY_NAMES]
         );
 
         const products = result.rows.map((row) => ({

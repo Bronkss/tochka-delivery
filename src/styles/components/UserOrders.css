@@ -1,0 +1,484 @@
+.user-orders {
+    display: grid;
+    gap: 2rem;
+
+    width: 100%;
+    min-width: 0;
+}
+
+.user-orders__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.6rem;
+
+    padding: 2rem;
+    box-sizing: border-box;
+
+    border-radius: 2.6rem;
+    background: #ffffff;
+    box-shadow:
+            0 1.2rem 3rem rgba(15, 23, 42, 0.07),
+            0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.user-orders__header h2 {
+    margin: 0 0 0.6rem;
+
+    color: var(--color-grey3);
+    font-size: 2.6rem;
+    font-weight: 950;
+    line-height: 1.1;
+}
+
+.user-orders__header p {
+    max-width: 58rem;
+    margin: 0;
+
+    color: var(--color-grey2);
+    font-size: 1.35rem;
+    font-weight: 750;
+    line-height: 1.35;
+}
+
+.user-orders__refresh {
+    flex: 0 0 auto;
+
+    min-height: 4.4rem;
+    padding: 0 1.7rem;
+    box-sizing: border-box;
+
+    border: 0;
+    border-radius: 999px;
+    background: #fff1f5;
+
+    color: var(--color-grey3);
+    font-size: 1.35rem;
+    font-weight: 900;
+
+    cursor: pointer;
+
+    transition:
+            transform 0.14s ease,
+            background 0.14s ease;
+}
+
+.user-orders__refresh:hover {
+    transform: translateY(-0.1rem);
+    background: #ffe4eb;
+}
+
+.user-orders__refresh:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.user-orders__loading,
+.user-orders__error,
+.user-orders__empty {
+    padding: 2rem;
+    box-sizing: border-box;
+
+    border-radius: 2.4rem;
+    background: #ffffff;
+
+    color: var(--color-grey3);
+    font-size: 1.5rem;
+    font-weight: 850;
+}
+
+.user-orders__loading {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-orders__loading span {
+    width: 2rem;
+    height: 2rem;
+
+    border-radius: 50%;
+    border: 0.3rem solid #ffe4eb;
+    border-top-color: var(--color-accent);
+
+    animation: order-spin 0.8s linear infinite;
+}
+
+.user-orders__error {
+    background: #fff4e8;
+    color: #d66a00;
+}
+
+.user-orders__empty {
+    text-align: center;
+}
+
+.user-orders__empty-icon {
+    margin-bottom: 1rem;
+    font-size: 4rem;
+}
+
+.user-orders__empty h3 {
+    margin: 0 0 0.7rem;
+
+    font-size: 2rem;
+    font-weight: 950;
+}
+
+.user-orders__empty p {
+    margin: 0;
+
+    color: var(--color-grey2);
+    font-size: 1.35rem;
+    font-weight: 750;
+}
+
+.user-orders__list {
+    display: grid;
+    gap: 1.6rem;
+}
+
+.user-order {
+    display: grid;
+    gap: 1.6rem;
+
+    padding: 2rem;
+    box-sizing: border-box;
+
+    border-radius: 2.8rem;
+    background: #ffffff;
+    box-shadow:
+            0 1.2rem 3.2rem rgba(15, 23, 42, 0.08),
+            0 0 0 1px rgba(15, 23, 42, 0.04);
+
+    animation: order-card-in 0.36s ease both;
+}
+
+.user-order--cancelled {
+    opacity: 0.78;
+}
+
+.user-order--completed {
+    background: linear-gradient(135deg, #ffffff 0%, #f2fff7 100%);
+}
+
+.user-order__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.2rem;
+}
+
+.user-order__number {
+    display: inline-flex;
+    align-items: center;
+
+    margin-bottom: 0.7rem;
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+
+    border-radius: 999px;
+    background: #f4f6f8;
+
+    color: var(--color-grey2);
+    font-size: 1.2rem;
+    font-weight: 950;
+}
+
+.user-order h3 {
+    margin: 0;
+
+    color: var(--color-grey3);
+    font-size: 2.1rem;
+    font-weight: 950;
+    line-height: 1.12;
+}
+
+.user-order__date {
+    margin: 0.6rem 0 0;
+
+    color: var(--color-grey2);
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.user-order__total {
+    flex: 0 0 auto;
+
+    color: var(--color-black);
+    font-size: 2rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.order-progress {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+
+    padding-top: 1.2rem;
+}
+
+.order-progress::before {
+    content: "";
+
+    position: absolute;
+    top: 2.75rem;
+    left: 10%;
+    right: 10%;
+
+    height: 0.35rem;
+
+    border-radius: 999px;
+    background: #eef1f4;
+}
+
+.order-progress__line {
+    position: absolute;
+    top: 2.75rem;
+    left: 10%;
+    z-index: 1;
+
+    max-width: 80%;
+    height: 0.35rem;
+
+    border-radius: 999px;
+    background: var(--color-accent);
+
+    transition: width 0.45s ease;
+}
+
+.order-progress__step {
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+    justify-items: center;
+    gap: 0.7rem;
+
+    text-align: center;
+}
+
+.order-progress__step span {
+    display: grid;
+    place-items: center;
+
+    width: 3.4rem;
+    height: 3.4rem;
+
+    border-radius: 50%;
+    background: #eef1f4;
+
+    color: var(--color-grey2);
+    font-size: 1.3rem;
+    font-weight: 950;
+
+    transition:
+            transform 0.2s ease,
+            background 0.2s ease,
+            color 0.2s ease;
+}
+
+.order-progress__step p {
+    max-width: 11rem;
+    margin: 0;
+
+    color: var(--color-grey2);
+    font-size: 1.1rem;
+    font-weight: 850;
+    line-height: 1.18;
+}
+
+.order-progress__step--active span {
+    background: var(--color-accent);
+    color: #ffffff;
+    animation: order-pulse 1.6s ease-in-out infinite;
+}
+
+.order-progress__step--active p {
+    color: var(--color-grey3);
+}
+
+.user-order__final-status {
+    padding: 1.2rem 1.4rem;
+    box-sizing: border-box;
+
+    border-radius: 1.8rem;
+    background: #f4f6f8;
+
+    color: var(--color-grey3);
+    font-size: 1.35rem;
+    font-weight: 950;
+}
+
+.user-order--cancelled .user-order__final-status {
+    background: #fff1f1;
+    color: #c0392b;
+}
+
+.user-order__info {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    gap: 1rem;
+}
+
+.user-order__info div {
+    display: grid;
+    gap: 0.35rem;
+
+    padding: 1.2rem;
+    box-sizing: border-box;
+
+    border-radius: 1.8rem;
+    background: #f8fafc;
+}
+
+.user-order__info span {
+    color: var(--color-grey2);
+    font-size: 1.1rem;
+    font-weight: 850;
+}
+
+.user-order__info strong {
+    color: var(--color-grey3);
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.user-order__items {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.user-order__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f0f2f4;
+
+    color: var(--color-grey3);
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.user-order__item:last-child {
+    border-bottom: 0;
+}
+
+.user-order__item span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.user-order__item strong {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.user-order__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.user-order__cancel {
+    min-height: 4.2rem;
+    padding: 0 1.6rem;
+    box-sizing: border-box;
+
+    border: 0;
+    border-radius: 999px;
+    background: #fff1f1;
+
+    color: #c0392b;
+    font-size: 1.25rem;
+    font-weight: 950;
+
+    cursor: pointer;
+
+    transition:
+            transform 0.14s ease,
+            background 0.14s ease;
+}
+
+.user-order__cancel:hover {
+    transform: translateY(-0.1rem);
+    background: #ffe1e1;
+}
+
+.user-order__cancel:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+@keyframes order-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(1.2rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes order-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(43, 166, 69, 0.25);
+    }
+
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 0 0.7rem rgba(43, 166, 69, 0);
+    }
+}
+
+@keyframes order-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 720px) {
+    .user-orders__header {
+        flex-direction: column;
+        padding: 1.6rem;
+        border-radius: 2.2rem;
+    }
+
+    .user-orders__header h2 {
+        font-size: 2.2rem;
+    }
+
+    .user-order {
+        padding: 1.5rem;
+        border-radius: 2.2rem;
+    }
+
+    .user-order__top {
+        flex-direction: column;
+    }
+
+    .user-order__total {
+        font-size: 1.8rem;
+    }
+
+    .user-order__info {
+        grid-template-columns: 1fr;
+    }
+
+    .order-progress {
+        gap: 0.4rem;
+    }
+
+    .order-progress__step p {
+        font-size: 1rem;
+    }
+}

@@ -11,7 +11,6 @@ import type { Product } from "../types/product.ts";
 
 type SearchProduct = Product & {
     categoryName?: string;
-    category?: string;
     description?: string;
 };
 
@@ -43,11 +42,15 @@ export default function SearchPages() {
                     throw new Error("Не удалось загрузить товары");
                 }
 
-                const data: SearchProduct[] = await response.json();
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error("Сервер вернул неверный формат товаров");
+                }
 
                 setProducts(data);
             } catch (error) {
-                console.error(error);
+                console.error("Ошибка загрузки товаров для поиска:", error);
                 setError("Ошибка загрузки товаров");
             } finally {
                 setIsLoading(false);
@@ -68,16 +71,21 @@ export default function SearchPages() {
             .split(/\s+/)
             .filter(Boolean);
 
-        return products.filter((product) => {
-            const productSearchText = normalizeSearchText([
-                product.name,
-                product.categoryName,
-                product.category,
-                product.description,
-            ].join(" "));
+        return products
+            .filter((product) => Number(product.stock) > 0)
+            .filter((product) => {
+                const productSearchText = normalizeSearchText([
+                    product.name,
+                    product.category,
+                    product.categoryName,
+                    product.barcode,
+                    product.description,
+                ].join(" "));
 
-            return queryWords.every((word) => productSearchText.includes(word));
-        });
+                return queryWords.every((word) =>
+                    productSearchText.includes(word)
+                );
+            });
     }, [products, searchQuery]);
 
     return (
@@ -86,7 +94,7 @@ export default function SearchPages() {
             <Navbar />
             <LocationBasketSwitcher />
 
-            <ProductsContent title={`Поиск: ${searchQuery}`}>
+            <ProductsContent title={searchQuery ? `Поиск: ${searchQuery}` : "Поиск"}>
                 {isLoading && <p>Загрузка товаров...</p>}
 
                 {error && <p>{error}</p>}
@@ -105,8 +113,9 @@ export default function SearchPages() {
                         id={String(product.id)}
                         title={product.name}
                         image={product.image}
-                        weight={0}
+                        weight={product.unit === "weight" ? "кг" : ""}
                         price={Math.floor(product.sellingPrice || 0)}
+                        stock={product.stock}
                     />
                 ))}
             </ProductsContent>

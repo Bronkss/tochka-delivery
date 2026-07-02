@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Безалкогольные напитки">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ecfeff"/>
+      <stop offset="1" stop-color="#fefce8"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#06b6d4" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".18"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#111827" flood-opacity=".18"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#111827" flood-opacity=".14"/>
+    </filter>
+    <radialGradient id="shine" cx="35%" cy="20%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="420" rx="46" fill="url(#bg)"/>
+  <circle cx="520" cy="80" r="128" fill="url(#shine)" opacity=".7"/>
+  <circle cx="100" cy="360" r="118" fill="#ffffff" opacity=".55"/>
+  <path d="M0 330 C120 260 230 382 336 314 C440 248 505 292 640 244 L640 420 L0 420 Z" fill="#ffffff" opacity=".46"/>
+  
+  <ellipse cx="320" cy="335" rx="172" ry="28" fill="#111827" opacity=".10"/>
+  <g filter="url(#shadow)">
+      <rect x="233" y="98" width="54" height="36" rx="12" fill="#0284c7"/>
+      <rect x="205" y="126" width="110" height="190" rx="32" fill="#38bdf8"/>
+      <rect x="223" y="176" width="74" height="68" rx="18" fill="#ecfeff" opacity=".88"/>
+      <circle cx="260" cy="210" r="18" fill="#38bdf8" opacity=".75"/>
+      <path d="M231 142 C235 118 285 118 289 142" fill="#ffffff" opacity=".18"/>
+    </g>
+  <g filter="url(#shadow)">
+      <rect x="346" y="80" width="54" height="36" rx="12" fill="#b91c1c"/>
+      <rect x="318" y="108" width="110" height="190" rx="32" fill="#ef4444"/>
+      <rect x="336" y="158" width="74" height="68" rx="18" fill="#fff7ed" opacity=".88"/>
+      <circle cx="373" cy="192" r="18" fill="#ef4444" opacity=".75"/>
+      <path d="M344 124 C348 100 398 100 402 124" fill="#ffffff" opacity=".18"/>
+    </g>
+  <g filter="url(#shadow)">
+      <rect x="452" y="110" width="54" height="36" rx="12" fill="#ca8a04"/>
+      <rect x="424" y="138" width="110" height="190" rx="32" fill="#facc15"/>
+      <rect x="442" y="188" width="74" height="68" rx="18" fill="#fef3c7" opacity=".88"/>
+      <circle cx="479" cy="222" r="18" fill="#facc15" opacity=".75"/>
+      <path d="M450 154 C454 130 504 130 508 154" fill="#ffffff" opacity=".18"/>
+    </g>
+</svg>

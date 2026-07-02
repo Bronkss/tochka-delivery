@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Алкоголь">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5f3ff"/>
+      <stop offset="1" stop-color="#fff7ed"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".18"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#111827" flood-opacity=".18"/>
+    </filter>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#111827" flood-opacity=".14"/>
+    </filter>
+    <radialGradient id="shine" cx="35%" cy="20%" r="70%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="420" rx="46" fill="url(#bg)"/>
+  <circle cx="520" cy="80" r="128" fill="url(#shine)" opacity=".7"/>
+  <circle cx="100" cy="360" r="118" fill="#ffffff" opacity=".55"/>
+  <path d="M0 330 C120 260 230 382 336 314 C440 248 505 292 640 244 L640 420 L0 420 Z" fill="#ffffff" opacity=".46"/>
+  
+  <ellipse cx="320" cy="334" rx="174" ry="28" fill="#111827" opacity=".10"/>
+  <g filter="url(#shadow)">
+    <rect x="224" y="80" width="90" height="240" rx="28" fill="#7c3aed"/>
+    <rect x="246" y="42" width="46" height="56" rx="12" fill="#4c1d95"/>
+    <rect x="238" y="160" width="62" height="74" rx="18" fill="#f5f3ff" opacity=".9"/>
+    <path d="M385 126 v136 c0 38-28 62-62 62h124c-34 0-62-24-62-62V126z" fill="#fbbf24" opacity=".9"/>
+    <path d="M360 126 h50" stroke="#92400e" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>

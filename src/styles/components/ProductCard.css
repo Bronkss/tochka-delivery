@@ -5,9 +5,9 @@
     flex-direction: column;
 
     min-width: 0;
-    height: 32rem;
+    height: 35rem;
 
-    padding: 1.2rem;
+    padding: 1.1rem;
     box-sizing: border-box;
 
     border-radius: 2.4rem;
@@ -32,13 +32,13 @@
     position: relative;
 
     width: 100%;
-    height: 16.6rem;
+    height: 19rem;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    padding: 1rem;
+    padding: 0.35rem;
     box-sizing: border-box;
 
     overflow: hidden;
@@ -53,6 +53,8 @@
 
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
 
     object-fit: contain;
     object-position: center;
@@ -65,10 +67,12 @@
 .product-card__default-video {
     display: block;
 
-    width: 78%;
-    height: 78%;
+    width: 100%;
+    height: 100%;
 
     object-fit: contain;
+    object-position: center;
+
     border-radius: 1.6rem;
 }
 
@@ -102,11 +106,11 @@
 .product-card__content {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.45rem;
     flex: 1;
 
     min-height: 0;
-    padding-top: 1rem;
+    padding-top: 0.9rem;
     box-sizing: border-box;
 }
 
@@ -114,24 +118,29 @@
     margin: 0;
 
     color: var(--color-grey3);
-    font-size: 1.55rem;
+    font-size: 1.35rem;
     font-weight: 900;
-    line-height: 1.25;
+    line-height: 1.22;
 
-    word-break: break-word;
+    word-break: normal;
     overflow-wrap: anywhere;
+    hyphens: auto;
+
+    max-height: 6.6rem;
     overflow-y: auto;
+
+    scrollbar-width: thin;
 }
 
 .product-card__weight {
     color: var(--color-grey2);
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 800;
     line-height: 1.2;
 }
 
 .product-card__notice {
-    margin-top: 0.6rem;
+    margin-top: 0.5rem;
     padding: 0.6rem 0.8rem;
     box-sizing: border-box;
 
@@ -139,7 +148,7 @@
     background: #fff4e8;
 
     color: #d66a00;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 800;
     line-height: 1.2;
 }
@@ -147,7 +156,7 @@
 .product-card__buy-button,
 .product-card__controls {
     width: 100%;
-    min-height: 4.4rem;
+    min-height: 4.3rem;
 
     margin-top: auto;
     padding: 0.35rem 0.6rem 0.35rem 1.3rem;
@@ -172,7 +181,7 @@
 .product-card__buy-button span {
     justify-self: center;
 
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 950;
     white-space: nowrap;
 }
@@ -237,7 +246,7 @@
 
 .product-card__price {
     color: var(--color-black);
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 950;
     text-align: center;
     white-space: nowrap;
@@ -250,43 +259,53 @@
 
 @media (max-width: 1024px) {
     .product-card {
-        height: 34rem;
+        height: 34.5rem;
+        padding: 1rem;
     }
 
     .product-card__image-block {
-        height: 15.8rem;
+        height: 17.8rem;
+        padding: 0.3rem;
+    }
+
+    .product-card__title {
+        font-size: 1.3rem;
+        line-height: 1.22;
+        max-height: 6.3rem;
     }
 }
 
 @media (max-width: 520px) {
     .product-card {
-        height: 30rem;
-        padding: 1rem;
+        height: 32.5rem;
+        padding: 0.9rem;
         border-radius: 2rem;
     }
 
     .product-card__image-block {
-        height: 13.8rem;
+        height: 16rem;
+        padding: 0.25rem;
         border-radius: 1.7rem;
     }
 
     .product-card__content {
-        padding-top: 0.8rem;
-        gap: 0.45rem;
+        padding-top: 0.75rem;
+        gap: 0.4rem;
     }
 
     .product-card__title {
-        font-size: 1.35rem;
-        line-height: 1.25;
+        font-size: 1.18rem;
+        line-height: 1.2;
+        max-height: 5.8rem;
     }
 
     .product-card__weight {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
     }
 
     .product-card__buy-button,
     .product-card__controls {
-        min-height: 4.2rem;
+        min-height: 4.1rem;
     }
 
     .product-card__buy-button {
@@ -295,7 +314,7 @@
 
     .product-card__buy-button span,
     .product-card__price {
-        font-size: 1.35rem;
+        font-size: 1.3rem;
     }
 
     .product-card__buy-button img {

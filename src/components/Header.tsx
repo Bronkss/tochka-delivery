@@ -68,7 +68,7 @@ export default function Header() {
                     className="header__button-block__auth"
                 >
                     <img src={authIcon} alt="Иконка авторизации"/>
-                    {user ? 'ЛК' : 'Войти'}
+                    {user ? 'Профиль' : 'Войти'}
                 </Link>
 
                 <a
