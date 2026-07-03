@@ -43,6 +43,8 @@ interface OrderData {
         quantity: number;
         price: number;
     }>;
+    productsTotal: number;
+    deliveryFee: number;
     total: number;
     customer: {
         name: string;
@@ -65,6 +67,61 @@ interface CreateOrderResponse {
     orderNumber?: string;
     telegramSent?: boolean;
     message?: string;
+}
+
+const ORDER_TIME_ZONE = 'Asia/Irkutsk';
+const ORDER_OPEN_HOUR = 10;
+const ORDER_CLOSE_HOUR = 22;
+
+function getDeliveryFee(productsTotal: number): number {
+    if (productsTotal <= 0) {
+        return 0;
+    }
+
+    if (productsTotal >= 1000) {
+        return 0;
+    }
+
+    if (productsTotal >= 500) {
+        return 50;
+    }
+
+    return 100;
+}
+
+function getDeliveryFeeText(deliveryFee: number): string {
+    return deliveryFee === 0 ? 'Бесплатно' : `${deliveryFee} ₽`;
+}
+
+function getOrderTimeState(date: Date) {
+    const formatter = new Intl.DateTimeFormat('ru-RU', {
+        timeZone: ORDER_TIME_ZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+
+    const parts = formatter.formatToParts(date);
+
+    const hour = Number.parseInt(
+        parts.find((part) => part.type === 'hour')?.value ?? '0',
+        10
+    );
+
+    const minute = Number.parseInt(
+        parts.find((part) => part.type === 'minute')?.value ?? '0',
+        10
+    );
+
+    const currentTime = formatter.format(date);
+    const isAvailable = hour >= ORDER_OPEN_HOUR && hour < ORDER_CLOSE_HOUR;
+
+    return {
+        hour,
+        minute,
+        currentTime,
+        isAvailable,
+    };
 }
 
 function BasketItem({ item, onRemove, onAdd }: BasketItemProps) {
@@ -150,6 +207,7 @@ export default function Basket() {
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [now, setNow] = useState(() => new Date());
 
     const [formData, setFormData] = useState<FormData>({
         paymentMethod: 'cash',
@@ -170,10 +228,28 @@ export default function Basket() {
     const customerName = user?.name?.trim() || '';
     const customerPhone = user?.phone?.trim() || '';
 
+    const orderTimeState = getOrderTimeState(now);
+    const isOrderTimeAvailable = orderTimeState.isAvailable;
+
+    const productsTotal = total;
+    const deliveryFee = getDeliveryFee(productsTotal);
+    const orderTotal = productsTotal + deliveryFee;
+    const deliveryFeeText = getDeliveryFeeText(deliveryFee);
+
     const getCurrentZIndex = (element: HTMLElement): number => {
         const zIndex = window.getComputedStyle(element).zIndex;
         return zIndex === 'auto' ? 0 : Number.parseInt(zIndex, 10);
     };
+
+    useEffect(() => {
+        const timerId = window.setInterval(() => {
+            setNow(new Date());
+        }, 30000);
+
+        return () => {
+            window.clearInterval(timerId);
+        };
+    }, []);
 
     useEffect(() => {
         headerRef.current = document.querySelector('header');
@@ -285,7 +361,16 @@ export default function Basket() {
         dispatch(addToBasket(item));
     };
 
+    const showClosedAlert = () => {
+        alert('Заказы принимаем с 10:00 до 22:00 по местному времени.');
+    };
+
     const openModal = () => {
+        if (!isOrderTimeAvailable) {
+            showClosedAlert();
+            return;
+        }
+
         if (!user) {
             navigate('/auth');
             return;
@@ -347,6 +432,11 @@ export default function Basket() {
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
 
+        if (!isOrderTimeAvailable) {
+            showClosedAlert();
+            return;
+        }
+
         if (!user) {
             navigate('/auth');
             return;
@@ -367,8 +457,8 @@ export default function Basket() {
             return;
         }
 
-        if (total < 100) {
-            alert('Минимальная сумма заказа — 100 ₽');
+        if (productsTotal < 100) {
+            alert('Минимальная сумма заказа — 100 ₽ без учёта доставки');
             return;
         }
 
@@ -384,7 +474,9 @@ export default function Basket() {
                 quantity: item.quantity,
                 price: item.price,
             })),
-            total,
+            productsTotal,
+            deliveryFee,
+            total: orderTotal,
             customer: {
                 name: customerName,
                 phone: customerPhone,
@@ -450,7 +542,17 @@ export default function Basket() {
     return (
         <div className="basket">
             <div className="basket__address">
-                <span className="delivery-time">Доставка 20 минут</span>
+                <span
+                    className={
+                        isOrderTimeAvailable
+                            ? 'delivery-time'
+                            : 'delivery-time delivery-time--closed'
+                    }
+                >
+                    {isOrderTimeAvailable
+                        ? 'Доставка 20 минут'
+                        : 'Заказы с 10:00 до 22:00'}
+                </span>
             </div>
 
             {items.length > 0 ? (
@@ -483,12 +585,18 @@ export default function Basket() {
 
             <div className="basket__order">
                 {items.length > 0 && (
-                    <span>
-                        Итого
-                        <span className="basket__order__total-price">
-                            {total} ₽
+                    <div className="basket__order-summary">
+                        <span>
+                            Итого
+                            <span className="basket__order__total-price">
+                                {orderTotal} ₽
+                            </span>
                         </span>
-                    </span>
+
+                        <small>
+                            Доставка: {deliveryFeeText}
+                        </small>
+                    </div>
                 )}
 
                 {items.length > 0 ? (
@@ -497,17 +605,21 @@ export default function Basket() {
                             type="button"
                             className="basket__order__button"
                             onClick={openModal}
+                            disabled={!isOrderTimeAvailable}
                         >
                             <img src={basketIcon} alt="" />
-                            {total} ₽
+                            {isOrderTimeAvailable ? `${orderTotal} ₽` : 'Закрыто'}
                         </button>
                     ) : (
                         <button
                             type="button"
                             className="basket__order__button"
                             onClick={openModal}
+                            disabled={!isOrderTimeAvailable}
                         >
-                            Продолжить
+                            {isOrderTimeAvailable
+                                ? 'Продолжить'
+                                : 'Заказы с 10:00 до 22:00'}
                         </button>
                     )
                 ) : (
@@ -641,11 +753,27 @@ export default function Basket() {
                                         />
                                     </div>
 
+                                    {!isOrderTimeAvailable && (
+                                        <p className="order-time-warning">
+                                            Сейчас заказы не принимаются. Оформление доступно с 10:00 до 22:00.
+                                        </p>
+                                    )}
+
                                     <div className="order-total">
                                         <div className="total-line">
+                                            <span>Товары:</span>
+                                            <span>{productsTotal} ₽</span>
+                                        </div>
+
+                                        <div className="total-line">
+                                            <span>Доставка:</span>
+                                            <span>{deliveryFeeText}</span>
+                                        </div>
+
+                                        <div className="total-line total-line--final">
                                             <span>Итого:</span>
                                             <span className="total-price">
-                                                {total} ₽
+                                                {orderTotal} ₽
                                             </span>
                                         </div>
 
@@ -655,12 +783,15 @@ export default function Basket() {
                                             disabled={
                                                 isSubmitting ||
                                                 !customerName ||
-                                                !customerPhone
+                                                !customerPhone ||
+                                                !isOrderTimeAvailable
                                             }
                                         >
                                             {isSubmitting
                                                 ? 'Отправка...'
-                                                : 'Оформить заказ'}
+                                                : isOrderTimeAvailable
+                                                    ? 'Оформить заказ'
+                                                    : 'Заказы с 10:00 до 22:00'}
                                         </button>
                                     </div>
                                 </form>
@@ -689,7 +820,7 @@ export default function Basket() {
 
                             <p className="confirmation-message">
                                 Ваш заказ отправлен в сборку.
-                                <br/>
+                                <br />
                                 Курьер скоро приедет по адресу:
                             </p>
 

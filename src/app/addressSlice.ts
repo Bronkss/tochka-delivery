@@ -13,11 +13,19 @@ const initialState: AddressState = {
     buttonCheck: false,
 };
 
-function isRegionOrDistrictPart(part: string): boolean {
-    const value = part
+function normalizeAddressPart(part: string): string {
+    return part
         .toLowerCase()
         .replace(/ё/g, 'е')
         .trim();
+}
+
+function isServiceAddressPart(part: string): boolean {
+    const value = normalizeAddressPart(part);
+
+    const isCountry =
+        value === 'россия' ||
+        value === 'российская федерация';
 
     const hasOblast =
         /(^|[^а-яa-z])область([^а-яa-z]|$)/i.test(value) ||
@@ -27,7 +35,17 @@ function isRegionOrDistrictPart(part: string): boolean {
         /(^|[^а-яa-z])район([^а-яa-z]|$)/i.test(value) ||
         /(^|[^а-яa-z])р-н\.?([^а-яa-z]|$)/i.test(value);
 
-    return hasOblast || hasDistrict;
+    const hasMunicipalOkrug =
+        /муниципальн[а-я]*\s+округ[а-я]*/i.test(value) ||
+        /городск[а-я]*\s+округ[а-я]*/i.test(value) ||
+        /муниципальн[а-я]*\s+образован[а-я]*/i.test(value);
+
+    return (
+        isCountry ||
+        hasOblast ||
+        hasDistrict ||
+        hasMunicipalOkrug
+    );
 }
 
 function makeShortAddress(address: string): string {
@@ -35,7 +53,7 @@ function makeShortAddress(address: string): string {
         .split(',')
         .map((part) => part.trim())
         .filter(Boolean)
-        .filter((part) => !isRegionOrDistrictPart(part))
+        .filter((part) => !isServiceAddressPart(part))
         .join(', ');
 }
 

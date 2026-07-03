@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 import type { AppDispatch, RootState } from '../app/store';
-import { setAddress, setButtonCheck } from '../app/addressSlice';
+import { clearAddress, setAddress, setButtonCheck } from '../app/addressSlice';
 
 declare global {
     interface Window {
@@ -41,6 +42,9 @@ const DEFAULT_STORE_POINT: RoutePoint = {
     lat: 55.792557,
     lon: 98.178143,
 };
+
+const DELIVERY_RADIUS_KM = 10;
+const DELIVERY_RADIUS_METERS = DELIVERY_RADIUS_KM * 1000;
 
 function loadYandexMaps(apiKey: string, suggestApiKey?: string) {
     if (window.ymaps) {
@@ -184,10 +188,37 @@ function createFallbackAddress(point: RoutePoint) {
     return `Точка на карте: ${point.lat.toFixed(6)}, ${point.lon.toFixed(6)}`;
 }
 
+function toRadians(value: number) {
+    return value * Math.PI / 180;
+}
+
+function getDistanceKm(from: RoutePoint, to: RoutePoint) {
+    const earthRadiusKm = 6371;
+
+    const dLat = toRadians(to.lat - from.lat);
+    const dLon = toRadians(to.lon - from.lon);
+
+    const lat1 = toRadians(from.lat);
+    const lat2 = toRadians(to.lat);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return earthRadiusKm * c;
+}
+
+function isPointInsideDeliveryRadius(from: RoutePoint, to: RoutePoint) {
+    return getDistanceKm(from, to) <= DELIVERY_RADIUS_KM;
+}
+
 export default function AddressMapPicker({
                                              city = 'Тайшет',
                                              routeFrom = DEFAULT_STORE_POINT,
-                                             initialZoom = 15,
+                                             initialZoom = 11,
                                              onChange,
                                          }: AddressMapPickerProps) {
     const dispatch = useDispatch<AppDispatch>();
@@ -210,9 +241,11 @@ export default function AddressMapPicker({
 
     const previewMapRef = useRef<any>(null);
     const previewStorePlacemarkRef = useRef<any>(null);
+    const previewDeliveryRadiusRef = useRef<any>(null);
 
     const modalMapRef = useRef<any>(null);
     const modalStorePlacemarkRef = useRef<any>(null);
+    const modalDeliveryRadiusRef = useRef<any>(null);
     const modalDeliveryPlacemarkRef = useRef<any>(null);
 
     const suggestViewRef = useRef<any>(null);
@@ -275,8 +308,42 @@ export default function AddressMapPicker({
         [routeFrom.lat, routeFrom.lon]
     );
 
+    const createDeliveryRadiusCircle = useCallback(
+        (map: any) => {
+            const ymaps = ymapsRef.current;
+
+            if (!ymaps || !map) return null;
+
+            const circle = new ymaps.Circle(
+                [
+                    [routeFrom.lat, routeFrom.lon],
+                    DELIVERY_RADIUS_METERS,
+                ],
+                {
+                    hintContent: `Зона доставки ${DELIVERY_RADIUS_KM} км`,
+                    balloonContent: `Доставляем в радиусе ${DELIVERY_RADIUS_KM} км от склада`,
+                },
+                {
+                    fillColor: '#2BA64522',
+                    strokeColor: '#2BA645',
+                    strokeOpacity: 0.75,
+                    strokeWidth: 2,
+                }
+            );
+
+            map.geoObjects.add(circle);
+
+            return circle;
+        },
+        [routeFrom.lat, routeFrom.lon]
+    );
+
     const updateModalDeliveryPlacemark = useCallback(
-        (point: RoutePoint, address: string) => {
+        (
+            point: RoutePoint,
+            address: string,
+            isOutsideDelivery = false
+        ) => {
             const ymaps = ymapsRef.current;
             const map = modalMapRef.current;
 
@@ -289,11 +356,15 @@ export default function AddressMapPicker({
                     coords,
                     {
                         balloonContent: address,
-                        hintContent: 'Адрес доставки',
+                        hintContent: isOutsideDelivery
+                            ? 'Адрес вне зоны доставки'
+                            : 'Адрес доставки',
                     },
                     {
                         draggable: true,
-                        preset: 'islands#greenDotIcon',
+                        preset: isOutsideDelivery
+                            ? 'islands#redDotIcon'
+                            : 'islands#greenDotIcon',
                     }
                 );
 
@@ -315,8 +386,17 @@ export default function AddressMapPicker({
                 modalDeliveryPlacemarkRef.current.geometry.setCoordinates(coords);
                 modalDeliveryPlacemarkRef.current.properties.set({
                     balloonContent: address,
-                    hintContent: 'Адрес доставки',
+                    hintContent: isOutsideDelivery
+                        ? 'Адрес вне зоны доставки'
+                        : 'Адрес доставки',
                 });
+
+                modalDeliveryPlacemarkRef.current.options.set(
+                    'preset',
+                    isOutsideDelivery
+                        ? 'islands#redDotIcon'
+                        : 'islands#greenDotIcon'
+                );
             }
 
             map.setCenter(coords, 16, {
@@ -337,6 +417,30 @@ export default function AddressMapPicker({
                     ? address.trim()
                     : createFallbackAddress(point);
 
+            const distanceKm = getDistanceKm(routeFrom, point);
+
+            if (!isPointInsideDeliveryRadius(routeFrom, point)) {
+                setSelectedAddress(null);
+                setAddressInput(cleanAddress);
+
+                dispatch(clearAddress());
+                dispatch(setButtonCheck(false));
+
+                setError(
+                    `Адрес вне зоны доставки. Доставляем только в радиусе ${DELIVERY_RADIUS_KM} км от склада. Выбранная точка примерно ${distanceKm.toFixed(1)} км.`
+                );
+
+                updateModalDeliveryPlacemark(
+                    point,
+                    `${cleanAddress}. Вне зоны доставки`,
+                    true
+                );
+
+                onChange?.(null);
+
+                return;
+            }
+
             const value: SelectedYandexDeliveryAddress = {
                 address: cleanAddress,
                 lat: point.lat,
@@ -351,10 +455,16 @@ export default function AddressMapPicker({
             dispatch(setAddress(cleanAddress));
             dispatch(setButtonCheck(true));
 
-            updateModalDeliveryPlacemark(point, cleanAddress);
+            updateModalDeliveryPlacemark(point, cleanAddress, false);
             onChange?.(value);
         },
-        [dispatch, onChange, updateModalDeliveryPlacemark]
+        [
+            dispatch,
+            onChange,
+            routeFrom.lat,
+            routeFrom.lon,
+            updateModalDeliveryPlacemark,
+        ]
     );
 
     const reverseGeocodeAndSelect = useCallback(
@@ -530,6 +640,7 @@ export default function AddressMapPicker({
         ]);
 
         previewMapRef.current = previewMap;
+        previewDeliveryRadiusRef.current = createDeliveryRadiusCircle(previewMap);
         previewStorePlacemarkRef.current = createStorePlacemark(previewMap);
 
         setIsPreviewReady(true);
@@ -539,9 +650,11 @@ export default function AddressMapPicker({
 
             previewMapRef.current = null;
             previewStorePlacemarkRef.current = null;
+            previewDeliveryRadiusRef.current = null;
             setIsPreviewReady(false);
         };
     }, [
+        createDeliveryRadiusCircle,
         createStorePlacemark,
         hasConfirmedAddress,
         initialZoom,
@@ -568,6 +681,7 @@ export default function AddressMapPicker({
         });
 
         modalMapRef.current = modalMap;
+        modalDeliveryRadiusRef.current = createDeliveryRadiusCircle(modalMap);
         modalStorePlacemarkRef.current = createStorePlacemark(modalMap);
 
         modalMap.events.add('click', async (event: any) => {
@@ -601,9 +715,11 @@ export default function AddressMapPicker({
 
             modalMapRef.current = null;
             modalStorePlacemarkRef.current = null;
+            modalDeliveryRadiusRef.current = null;
             modalDeliveryPlacemarkRef.current = null;
         };
     }, [
+        createDeliveryRadiusCircle,
         createStorePlacemark,
         initialZoom,
         isApiReady,
@@ -611,6 +727,7 @@ export default function AddressMapPicker({
         reverseGeocodeAndSelect,
         routeFrom.lat,
         routeFrom.lon,
+        updateModalDeliveryPlacemark,
     ]);
 
     useEffect(() => {
@@ -674,7 +791,7 @@ export default function AddressMapPicker({
         };
     }, []);
 
-    const handleSearchSubmit = async (event: React.FormEvent) => {
+    const handleSearchSubmit = async (event: FormEvent) => {
         event.preventDefault();
         await searchAddress(addressInput);
     };
@@ -735,7 +852,7 @@ export default function AddressMapPicker({
                             </label>
 
                             <div className="yandex-delivery-modal__hint">
-                                Введите адрес, кликните по карте или перетащите маркер
+                                Введите адрес, кликните по карте или перетащите маркер. Доставляем в радиусе 10 км от склада.
                             </div>
                         </div>
 

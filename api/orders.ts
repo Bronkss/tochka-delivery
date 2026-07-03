@@ -10,6 +10,8 @@ interface IncomingOrderItem {
 interface IncomingOrder {
     address?: string;
     items?: IncomingOrderItem[];
+    productsTotal?: number;
+    deliveryFee?: number;
     total?: number;
     customer?: {
         name?: string;
@@ -27,6 +29,10 @@ interface NormalizedOrderItem {
     quantity: number;
     price: number;
 }
+
+const LOCAL_UTC_OFFSET_HOURS = 8; // МСК +5 = UTC +8
+const ORDER_OPEN_HOUR = 10;
+const ORDER_CLOSE_HOUR = 22;
 
 function setCors(res: VercelResponse) {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -52,6 +58,48 @@ function normalizeItems(items: IncomingOrderItem[]): NormalizedOrderItem[] {
             price: Math.max(0, Math.floor(Number(item.price) || 0)),
         }))
         .filter((item) => item.id && item.title && item.quantity > 0);
+}
+
+function getProductsTotal(items: NormalizedOrderItem[]): number {
+    return items.reduce((sum, item) => {
+        return sum + item.price * item.quantity;
+    }, 0);
+}
+
+function getDeliveryFee(productsTotal: number): number {
+    if (productsTotal <= 0) {
+        return 0;
+    }
+
+    if (productsTotal >= 1000) {
+        return 0;
+    }
+
+    if (productsTotal >= 500) {
+        return 50;
+    }
+
+    return 100;
+}
+
+function getDeliveryFeeText(deliveryFee: number): string {
+    return deliveryFee === 0 ? 'Бесплатно' : `${deliveryFee} ₽`;
+}
+
+function getLocalOrderTime(date = new Date()) {
+    const localDate = new Date(
+        date.getTime() + LOCAL_UTC_OFFSET_HOURS * 60 * 60 * 1000
+    );
+
+    const hour = localDate.getUTCHours();
+    const minute = localDate.getUTCMinutes();
+
+    return {
+        hour,
+        minute,
+        timeText: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+        isAvailable: hour >= ORDER_OPEN_HOUR && hour < ORDER_CLOSE_HOUR,
+    };
 }
 
 function getValidationError(order: IncomingOrder): string | null {
@@ -102,6 +150,17 @@ export default async function handler(
         });
     }
 
+    const orderTime = getLocalOrderTime();
+
+    if (!orderTime.isAvailable) {
+        return res.status(403).json({
+            success: false,
+            message: 'Заказы принимаются с 10:00 до 22:00 по местному времени',
+            currentLocalTime: orderTime.timeText,
+            workingHours: '10:00-22:00',
+        });
+    }
+
     try {
         const { getPool } = await import('./_db.js');
         const { requireUser } = await import('./_auth.js');
@@ -135,14 +194,14 @@ export default async function handler(
             });
         }
 
-        const total = items.reduce((sum, item) => {
-            return sum + item.price * item.quantity;
-        }, 0);
+        const productsTotal = getProductsTotal(items);
+        const deliveryFee = getDeliveryFee(productsTotal);
+        const total = productsTotal + deliveryFee;
 
-        if (total < 100) {
+        if (productsTotal < 100) {
             return res.status(400).json({
                 success: false,
-                message: 'Минимальная сумма заказа — 100 ₽',
+                message: 'Минимальная сумма заказа — 100 ₽ без учёта доставки',
             });
         }
 
@@ -266,6 +325,9 @@ export default async function handler(
 
             const telegramOrder = {
                 ...createdOrder,
+                products_total: productsTotal,
+                delivery_fee: deliveryFee,
+                delivery_fee_text: getDeliveryFeeText(deliveryFee),
                 items,
             };
 
@@ -314,6 +376,9 @@ export default async function handler(
             success: true,
             orderId: createdOrder.id,
             orderNumber: createdOrder.order_number,
+            productsTotal,
+            deliveryFee,
+            total,
             telegramSent,
         });
     } catch (error) {
