@@ -328,6 +328,11 @@ export default function AddressMapPicker({
                     strokeColor: '#2BA645',
                     strokeOpacity: 0.75,
                     strokeWidth: 2,
+
+                    // ВАЖНО:
+                    // круг виден на карте, но больше не перехватывает клики.
+                    // Теперь клик по карте снова выбирает адрес.
+                    interactivityModel: 'default#transparent',
                 }
             );
 

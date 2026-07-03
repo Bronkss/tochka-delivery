@@ -17,6 +17,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.8rem;
+    margin-top: 1rem;
 
     width: fit-content;
     padding: 0.6rem;
