@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard.tsx";
+import Footer from "./Footer.tsx";
 
 interface Category {
     id: string;
@@ -76,6 +77,8 @@ function MainContent() {
                     ))}
                 </div>
             </div>
+
+            <Footer />
         </section>
     );
 }

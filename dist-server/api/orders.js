@@ -1,3 +1,6 @@
+const LOCAL_UTC_OFFSET_HOURS = 8; // МСК +5 = UTC +8
+const ORDER_OPEN_HOUR = 10;
+const ORDER_CLOSE_HOUR = 22;
 function setCors(res) {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,6 +22,37 @@ function normalizeItems(items) {
         price: Math.max(0, Math.floor(Number(item.price) || 0)),
     }))
         .filter((item) => item.id && item.title && item.quantity > 0);
+}
+function getProductsTotal(items) {
+    return items.reduce((sum, item) => {
+        return sum + item.price * item.quantity;
+    }, 0);
+}
+function getDeliveryFee(productsTotal) {
+    if (productsTotal <= 0) {
+        return 0;
+    }
+    if (productsTotal >= 1000) {
+        return 0;
+    }
+    if (productsTotal >= 500) {
+        return 50;
+    }
+    return 100;
+}
+function getDeliveryFeeText(deliveryFee) {
+    return deliveryFee === 0 ? 'Бесплатно' : `${deliveryFee} ₽`;
+}
+function getLocalOrderTime(date = new Date()) {
+    const localDate = new Date(date.getTime() + LOCAL_UTC_OFFSET_HOURS * 60 * 60 * 1000);
+    const hour = localDate.getUTCHours();
+    const minute = localDate.getUTCMinutes();
+    return {
+        hour,
+        minute,
+        timeText: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+        isAvailable: hour >= ORDER_OPEN_HOUR && hour < ORDER_CLOSE_HOUR,
+    };
 }
 function getValidationError(order) {
     if (!order.address || order.address.trim().length < 5) {
@@ -55,6 +89,15 @@ export default async function handler(req, res) {
             message: 'Method not allowed',
         });
     }
+    const orderTime = getLocalOrderTime();
+    if (!orderTime.isAvailable) {
+        return res.status(403).json({
+            success: false,
+            message: 'Заказы принимаются с 10:00 до 22:00 по местному времени',
+            currentLocalTime: orderTime.timeText,
+            workingHours: '10:00-22:00',
+        });
+    }
     try {
         const { getPool } = await import('./_db.js');
         const { requireUser } = await import('./_auth.js');
@@ -76,13 +119,13 @@ export default async function handler(req, res) {
                 message: 'Корзина пуста',
             });
         }
-        const total = items.reduce((sum, item) => {
-            return sum + item.price * item.quantity;
-        }, 0);
-        if (total < 100) {
+        const productsTotal = getProductsTotal(items);
+        const deliveryFee = getDeliveryFee(productsTotal);
+        const total = productsTotal + deliveryFee;
+        if (productsTotal < 100) {
             return res.status(400).json({
                 success: false,
-                message: 'Минимальная сумма заказа — 100 ₽',
+                message: 'Минимальная сумма заказа — 100 ₽ без учёта доставки',
             });
         }
         const client = await pool.connect();
@@ -173,6 +216,9 @@ export default async function handler(req, res) {
             }
             const telegramOrder = {
                 ...createdOrder,
+                products_total: productsTotal,
+                delivery_fee: deliveryFee,
+                delivery_fee_text: getDeliveryFeeText(deliveryFee),
                 items,
             };
             const telegramMessage = await sendTelegramMessage(courierChatId, formatOrderMessage(telegramOrder), buildOrderKeyboard(createdOrder.id, createdOrder.status));
@@ -207,6 +253,9 @@ export default async function handler(req, res) {
             success: true,
             orderId: createdOrder.id,
             orderNumber: createdOrder.order_number,
+            productsTotal,
+            deliveryFee,
+            total,
             telegramSent,
         });
     }

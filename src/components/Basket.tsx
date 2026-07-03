@@ -11,6 +11,8 @@ import removeIcon from '../assets/icons/remove-from-basket.svg';
 import basketIcon from '../assets/icons/basket-icon.png';
 import addIcon from '../assets/icons/add-to-basket.svg';
 
+import { getImageUrl } from '../utils/imageProxy';
+
 interface BasketItemProps {
     item: {
         id: string;
@@ -132,7 +134,7 @@ function BasketItem({ item, onRemove, onAdd }: BasketItemProps) {
             <div className="basket__item-info">
                 <div className="basket__item-image-block">
                     <img
-                        src={item.image || fallbackImage}
+                        src={getImageUrl(item.image) || fallbackImage}
                         alt={item.title}
                         className="basket__item-image"
                         onError={(event) => {
@@ -584,21 +586,6 @@ export default function Basket() {
             )}
 
             <div className="basket__order">
-                {items.length > 0 && (
-                    <div className="basket__order-summary">
-                        <span>
-                            Итого
-                            <span className="basket__order__total-price">
-                                {orderTotal} ₽
-                            </span>
-                        </span>
-
-                        <small>
-                            Доставка: {deliveryFeeText}
-                        </small>
-                    </div>
-                )}
-
                 {items.length > 0 ? (
                     isMobile ? (
                         <button
@@ -608,7 +595,10 @@ export default function Basket() {
                             disabled={!isOrderTimeAvailable}
                         >
                             <img src={basketIcon} alt="" />
-                            {isOrderTimeAvailable ? `${orderTotal} ₽` : 'Закрыто'}
+
+                            {isOrderTimeAvailable
+                                ? `${productsTotal} ₽`
+                                : 'Закрыто'}
                         </button>
                     ) : (
                         <button
@@ -618,7 +608,7 @@ export default function Basket() {
                             disabled={!isOrderTimeAvailable}
                         >
                             {isOrderTimeAvailable
-                                ? 'Продолжить'
+                                ? `Продолжить · ${productsTotal} ₽`
                                 : 'Заказы с 10:00 до 22:00'}
                         </button>
                     )

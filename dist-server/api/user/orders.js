@@ -1,61 +1,206 @@
-import { getPool } from '../_db.js';
+import { getErrorMessage, getPool } from '../../server/db.js';
 import { requireUser } from '../_auth.js';
+function toNumber(value) {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) {
+        return 0;
+    }
+    return numberValue;
+}
+function getBodyOrderId(value) {
+    const orderId = Number(value);
+    if (!Number.isFinite(orderId) || orderId <= 0) {
+        return 0;
+    }
+    return Math.floor(orderId);
+}
+function canCancelOrder(status) {
+    return ['new', 'accepted', 'assembling'].includes(status);
+}
+async function getUserOrders(req, res) {
+    const user = await requireUser(req);
+    const pool = getPool();
+    const ordersResult = await pool.query(`
+            SELECT
+                id,
+                order_number,
+                status,
+                address,
+                payment_method,
+                comments,
+                total,
+                created_at,
+                updated_at
+            FROM orders
+            WHERE user_id = $1
+            ORDER BY created_at DESC
+            LIMIT 50
+        `, [user.id]);
+    const orderIds = ordersResult.rows.map((order) => order.id);
+    let itemsByOrderId = new Map();
+    if (orderIds.length > 0) {
+        const itemsResult = await pool.query(`
+                SELECT
+                    order_id,
+                    product_id,
+                    title,
+                    quantity,
+                    price
+                FROM order_items
+                WHERE order_id = ANY($1::bigint[])
+                ORDER BY id ASC
+            `, [orderIds]);
+        itemsByOrderId = itemsResult.rows.reduce((map, item) => {
+            const currentItems = map.get(item.order_id) ?? [];
+            currentItems.push(item);
+            map.set(item.order_id, currentItems);
+            return map;
+        }, new Map());
+    }
+    const orders = ordersResult.rows.map((order) => ({
+        id: Number(order.id),
+        orderNumber: order.order_number,
+        status: order.status,
+        address: order.address,
+        paymentMethod: order.payment_method,
+        comments: order.comments,
+        total: toNumber(order.total),
+        createdAt: order.created_at,
+        updatedAt: order.updated_at,
+        canCancel: canCancelOrder(order.status),
+        items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({
+            productId: item.product_id,
+            title: item.title,
+            quantity: toNumber(item.quantity),
+            price: toNumber(item.price),
+        })),
+    }));
+    return res.status(200).json({
+        success: true,
+        orders,
+    });
+}
+async function cancelUserOrder(req, res) {
+    const user = await requireUser(req);
+    const orderId = getBodyOrderId(req.body?.orderId);
+    if (!orderId) {
+        return res.status(400).json({
+            success: false,
+            message: 'Некорректный номер заказа',
+        });
+    }
+    const pool = getPool();
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const orderResult = await client.query(`
+                SELECT
+                    id,
+                    status,
+                    order_number
+                FROM orders
+                WHERE id = $1
+                  AND user_id = $2
+                FOR UPDATE
+            `, [orderId, user.id]);
+        const order = orderResult.rows[0];
+        if (!order) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                message: 'Заказ не найден',
+            });
+        }
+        if (order.status === 'cancelled') {
+            await client.query('COMMIT');
+            return res.status(200).json({
+                success: true,
+                message: 'Заказ уже отменён',
+                orderId,
+                orderNumber: order.order_number,
+                status: 'cancelled',
+            });
+        }
+        if (!canCancelOrder(order.status)) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: 'Этот заказ уже нельзя отменить',
+            });
+        }
+        /**
+         * Если в /api/orders у тебя списываются остатки,
+         * этот блок вернёт товары на склад при отмене.
+         */
+        await client.query(`
+                UPDATE products
+                SET stock = stock + order_items.quantity
+                FROM order_items
+                WHERE order_items.order_id = $1
+                  AND products.id::text = order_items.product_id
+            `, [orderId]);
+        await client.query(`
+                UPDATE orders
+                SET status = 'cancelled',
+                    updated_at = now()
+                WHERE id = $1
+            `, [orderId]);
+        await client.query(`
+                INSERT INTO order_status_history (
+                    order_id,
+                    old_status,
+                    new_status,
+                    changed_by_name,
+                    created_at
+                )
+                VALUES ($1, $2, 'cancelled', $3, now())
+            `, [
+            orderId,
+            order.status,
+            user.name || user.email || 'Пользователь',
+        ]);
+        await client.query('COMMIT');
+        return res.status(200).json({
+            success: true,
+            message: 'Заказ отменён',
+            orderId,
+            orderNumber: order.order_number,
+            status: 'cancelled',
+        });
+    }
+    catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    }
+    finally {
+        client.release();
+    }
+}
 export default async function handler(req, res) {
-    if (req.method !== 'GET') {
+    try {
+        if (req.method === 'GET') {
+            return await getUserOrders(req, res);
+        }
+        if (req.method === 'PATCH') {
+            return await cancelUserOrder(req, res);
+        }
         return res.status(405).json({
             success: false,
             message: 'Method not allowed',
         });
     }
-    try {
-        const user = await requireUser(req);
-        const pool = getPool();
-        const result = await pool.query(`
-                SELECT
-                    orders.id,
-                    orders.order_number,
-                    orders.status,
-                    orders.address,
-                    orders.apartment,
-                    orders.payment_method,
-                    orders.comments,
-                    orders.total,
-                    orders.created_at,
-                    COALESCE(
-                        json_agg(
-                            json_build_object(
-                                'id', order_items.id,
-                                'productId', order_items.product_id,
-                                'title', order_items.title,
-                                'quantity', order_items.quantity,
-                                'price', order_items.price
-                            )
-                            ORDER BY order_items.id ASC
-                        ) FILTER (WHERE order_items.id IS NOT NULL),
-                        '[]'
-                    ) AS items
-                FROM orders
-                LEFT JOIN order_items ON order_items.order_id = orders.id
-                WHERE orders.user_id = $1
-                GROUP BY orders.id
-                ORDER BY orders.created_at DESC
-            `, [user.id]);
-        return res.status(200).json({
-            success: true,
-            orders: result.rows,
-        });
-    }
     catch (error) {
-        if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+        console.error('User orders API error:', error);
+        const message = getErrorMessage(error);
+        if (message === 'UNAUTHORIZED') {
             return res.status(401).json({
                 success: false,
-                message: 'Нужно войти в аккаунт',
+                message: 'Необходима авторизация',
             });
         }
-        console.error('User orders error:', error);
         return res.status(500).json({
             success: false,
-            message: 'Ошибка загрузки заказов',
+            message,
         });
     }
 }

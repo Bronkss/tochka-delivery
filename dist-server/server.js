@@ -19,6 +19,8 @@ import * as pingModule from './api/ping.js';
 import * as whoamiModule from './api/whoami.js';
 import * as dbTestModule from './api/db-test.js';
 import * as debugDbModule from './api/debug/db.js';
+import * as debugBlobSpeedModule from './api/debug/blob-speed.js';
+import * as imageProxyModule from './api/image-proxy.js';
 dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 const app = express();
@@ -91,6 +93,8 @@ const pingHandler = resolveHandler('api/ping', pingModule);
 const whoamiHandler = resolveHandler('api/whoami', whoamiModule);
 const dbTestHandler = resolveHandler('api/db-test', dbTestModule);
 const debugDbHandler = resolveHandler('api/debug/db', debugDbModule);
+const debugBlobSpeedHandler = resolveHandler('api/debug/blob-speed', debugBlobSpeedModule);
+const imageProxyHandler = resolveHandler('api/image-proxy', imageProxyModule);
 /**
  * Health / debug
  */
@@ -99,6 +103,8 @@ app.all('/api/ping', wrapHandler(pingHandler));
 app.all('/api/whoami', wrapHandler(whoamiHandler));
 app.all('/api/db-test', wrapHandler(dbTestHandler));
 app.all('/api/debug/db', wrapHandler(debugDbHandler));
+app.all('/api/debug/blob-speed', wrapHandler(debugBlobSpeedHandler));
+app.all('/api/image-proxy', wrapHandler(imageProxyHandler));
 /**
  * Products / categories
  */

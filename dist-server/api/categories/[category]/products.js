@@ -1,4 +1,5 @@
 import { getErrorMessage, getPool } from '../../../server/db.js';
+import { isRestrictedCategory, RESTRICTED_CATEGORY_NAMES, } from '../../../server/restrictedCategories.js';
 function toNumber(value) {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue)) {
@@ -12,6 +13,14 @@ function getQueryValue(value) {
     }
     return String(value ?? '');
 }
+function safeDecode(value) {
+    try {
+        return decodeURIComponent(value);
+    }
+    catch {
+        return value;
+    }
+}
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({
@@ -19,14 +28,19 @@ export default async function handler(req, res) {
             message: 'Method not allowed',
         });
     }
-    const category = getQueryValue(req.query.category) ||
+    const rawCategory = getQueryValue(req.query.category) ||
         getQueryValue(req.query.categoryName) ||
         getQueryValue(req.query.categoryId);
-    if (!category.trim()) {
+    const category = safeDecode(rawCategory).trim();
+    if (!category) {
         return res.status(400).json({
             success: false,
             message: 'Category is required',
         });
+    }
+    if (isRestrictedCategory(category)) {
+        console.warn(`Restricted category blocked: ${category}`);
+        return res.status(200).json([]);
     }
     const startedAt = Date.now();
     try {
@@ -47,8 +61,11 @@ export default async function handler(req, res) {
                 FROM products
                 WHERE stock > 0
                   AND category = $1
+                  AND NOT (
+                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($2::text[])
+                  )
                 ORDER BY id ASC
-            `, [category]);
+            `, [category, RESTRICTED_CATEGORY_NAMES]);
         const products = result.rows.map((row) => ({
             id: Number(row.id),
             name: row.name,

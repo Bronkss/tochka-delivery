@@ -1,4 +1,5 @@
 import { getErrorMessage, getPool } from '../server/db.js';
+import { RESTRICTED_CATEGORY_NAMES } from '../server/restrictedCategories.js';
 function toNumber(value) {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue)) {
@@ -18,21 +19,26 @@ export default async function handler(req, res) {
         console.log('GET /api/products started');
         const pool = getPool();
         const result = await pool.query(`
-            SELECT
-                id,
-                name,
-                category,
-                barcode,
-                purchase_price,
-                selling_price,
-                unit,
-                stock,
-                min_stock,
-                image_url AS image
-            FROM products
-            WHERE stock > 0
-            ORDER BY id ASC
-        `);
+                SELECT
+                    id,
+                    name,
+                    category,
+                    barcode,
+                    purchase_price,
+                    selling_price,
+                    unit,
+                    stock,
+                    min_stock,
+                    image_url AS image
+                FROM products
+                WHERE stock > 0
+                  AND category IS NOT NULL
+                  AND TRIM(category) <> ''
+                  AND NOT (
+                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($1::text[])
+                  )
+                ORDER BY id ASC
+            `, [RESTRICTED_CATEGORY_NAMES]);
         const products = result.rows.map((row) => ({
             id: Number(row.id),
             name: row.name,

@@ -12,6 +12,7 @@
 @import "components/ProductsContent.css";
 @import "components/ProductCard.css";
 @import "components/Map.css";
+@import "components/Footer.css";
 
 /* Pages */
 @import "pages/Auth.css";
