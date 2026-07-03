@@ -8,6 +8,8 @@ import { addToBasket, removeFromBasket } from '../app/basketSlice';
 import addIcon from '../assets/icons/add-to-basket.svg';
 import removeIcon from '../assets/icons/remove-from-basket.svg';
 
+import { getImageUrl } from '../utils/imageProxy';
+
 const PRODUCT_PLACEHOLDER = '/product-placeholder.png';
 
 type ProductLike = {
@@ -163,7 +165,7 @@ export default function ProductCard(props: ProductCardProps) {
             <div className="product-card__image-block">
                 <img
                     className="product-card__image products-card__image"
-                    src={imageSrc}
+                    src={getImageUrl(imageSrc)}
                     alt={title}
                     loading="lazy"
                     onError={() => {

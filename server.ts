@@ -27,6 +27,8 @@ import * as dbTestModule from './api/db-test.js';
 import * as debugDbModule from './api/debug/db.js';
 import * as debugBlobSpeedModule from './api/debug/blob-speed.js';
 
+import * as imageProxyModule from './api/image-proxy.js';
+
 dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
@@ -145,6 +147,8 @@ const debugBlobSpeedHandler = resolveHandler(
     debugBlobSpeedModule
 );
 
+const imageProxyHandler = resolveHandler('api/image-proxy', imageProxyModule);
+
 /**
  * Health / debug
  */
@@ -154,6 +158,8 @@ app.all('/api/whoami', wrapHandler(whoamiHandler));
 app.all('/api/db-test', wrapHandler(dbTestHandler));
 app.all('/api/debug/db', wrapHandler(debugDbHandler));
 app.all('/api/debug/blob-speed', wrapHandler(debugBlobSpeedHandler));
+
+app.all('/api/image-proxy', wrapHandler(imageProxyHandler));
 
 /**
  * Products / categories
