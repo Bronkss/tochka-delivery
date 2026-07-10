@@ -39,8 +39,8 @@ type AddressMapPickerProps = {
 };
 
 const DEFAULT_STORE_POINT: RoutePoint = {
-    lat: 55.792557,
-    lon: 98.178143,
+    lat: 55.793647,
+    lon: 98.176608,
 };
 
 const DELIVERY_RADIUS_KM = 10;
@@ -320,8 +320,7 @@ export default function AddressMapPicker({
                     DELIVERY_RADIUS_METERS,
                 ],
                 {
-                    hintContent: `Зона доставки ${DELIVERY_RADIUS_KM} км`,
-                    balloonContent: `Доставляем в радиусе ${DELIVERY_RADIUS_KM} км от склада`,
+                    hintContent: `Зона доставки ${DELIVERY_RADIUS_KM} км`
                 },
                 {
                     fillColor: '#2BA64522',

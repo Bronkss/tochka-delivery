@@ -208,6 +208,67 @@
     line-height: 1.35;
 }
 
+.profile-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.profile-home-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+
+    min-height: 4.4rem;
+    padding: 0 1.5rem 0 1.1rem;
+    box-sizing: border-box;
+
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow:
+            0 1rem 2.6rem rgba(15, 23, 42, 0.07),
+            0 0 0 1px rgba(15, 23, 42, 0.04);
+
+    color: var(--color-grey3);
+    font-size: 1.35rem;
+    font-weight: 950;
+    line-height: 1;
+    text-decoration: none;
+
+    transition:
+            transform 0.14s ease,
+            background 0.14s ease,
+            color 0.14s ease;
+}
+
+.profile-home-button:hover {
+    transform: translateY(-0.1rem);
+    background: #fff1f5;
+    color: var(--color-accent);
+}
+
+.profile-home-button__icon {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+    .profile-navigation {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .profile-home-button {
+        width: fit-content;
+        min-height: 4rem;
+
+        font-size: 1.25rem;
+    }
+}
+
 @media (max-width: 720px) {
     .profile-tabs {
         width: 100%;

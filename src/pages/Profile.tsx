@@ -57,28 +57,52 @@ export default function Profile() {
             <LocationBasketSwitcher />
 
             <main className="profile-page">
-                <div className="profile-tabs">
+                <div className="profile-navigation">
                     <Link
-                        to="/account"
-                        className={
-                            activeTab === 'profile'
-                                ? 'profile-tabs__button profile-tabs__button--active'
-                                : 'profile-tabs__button'
-                        }
+                        to="/"
+                        className="profile-home-button"
                     >
-                        Профиль
+                        <svg
+                            className="profile-home-button__icon"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M15.5 19L8.5 12L15.5 5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+
+                        <span>Главная</span>
                     </Link>
 
-                    <Link
-                        to="/account?tab=orders"
-                        className={
-                            activeTab === 'orders'
-                                ? 'profile-tabs__button profile-tabs__button--active'
-                                : 'profile-tabs__button'
-                        }
-                    >
-                        Мои заказы
-                    </Link>
+                    <div className="profile-tabs">
+                        <Link
+                            to="/account"
+                            className={
+                                activeTab === 'profile'
+                                    ? 'profile-tabs__button profile-tabs__button--active'
+                                    : 'profile-tabs__button'
+                            }
+                        >
+                            Профиль
+                        </Link>
+
+                        <Link
+                            to="/account?tab=orders"
+                            className={
+                                activeTab === 'orders'
+                                    ? 'profile-tabs__button profile-tabs__button--active'
+                                    : 'profile-tabs__button'
+                            }
+                        >
+                            Мои заказы
+                        </Link>
+                    </div>
                 </div>
 
                 {activeTab === 'profile' && (
