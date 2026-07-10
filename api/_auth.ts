@@ -13,6 +13,7 @@ export interface AuthUser {
     email: string;
     name: string | null;
     phone: string | null;
+    isVip: boolean;
 }
 
 const SESSION_COOKIE_NAME = 'rodnik_session';
@@ -136,13 +137,14 @@ export async function getCurrentUser(
     const tokenHash = hashSessionToken(token);
     const pool = getPool();
 
-    const result = await pool.query(
+    const result = await pool.query<AuthUser>(
         `
             SELECT
                 users.id,
                 users.email,
                 users.name,
-                users.phone
+                users.phone,
+                COALESCE(users.is_vip, false) AS "isVip"
             FROM user_sessions
             JOIN users ON users.id = user_sessions.user_id
             WHERE user_sessions.token_hash = $1

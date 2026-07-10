@@ -1,6 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getCurrentUser } from './_auth.js';
 import { getErrorMessage, getPool } from '../server/db.js';
-import { RESTRICTED_CATEGORY_NAMES } from '../server/restrictedCategories.js';
+import {
+    canViewRestrictedCategories,
+    RESTRICTED_CATEGORY_NAMES,
+} from '../server/restrictedCategories.js';
 
 interface CategoryRow {
     name: string;
@@ -35,6 +39,20 @@ export default async function handler(
         console.log('GET /api/categories started');
 
         const pool = getPool();
+        const user = await getCurrentUser(req);
+        const showRestrictedCategories = canViewRestrictedCategories(user);
+
+        const restrictedFilterSql = showRestrictedCategories
+            ? ''
+            : `
+                  AND NOT (
+                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($1::text[])
+                  )
+              `;
+
+        const queryParams = showRestrictedCategories
+            ? []
+            : [RESTRICTED_CATEGORY_NAMES];
 
         const result = await pool.query<CategoryRow>(
             `
@@ -49,13 +67,11 @@ export default async function handler(
                 WHERE stock > 0
                   AND category IS NOT NULL
                   AND TRIM(category) <> ''
-                  AND NOT (
-                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($1::text[])
-                  )
+                  ${restrictedFilterSql}
                 GROUP BY category
                 ORDER BY category ASC
             `,
-            [RESTRICTED_CATEGORY_NAMES]
+            queryParams
         );
 
         const categories = result.rows.map((row) => ({

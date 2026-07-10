@@ -101,6 +101,7 @@ export default async function handler(req, res) {
     try {
         const { getPool } = await import('./_db.js');
         const { requireUser } = await import('./_auth.js');
+        const { canViewRestrictedCategories, RESTRICTED_CATEGORY_NAMES, } = await import('../server/restrictedCategories.js');
         const { buildOrderKeyboard, formatOrderMessage, sendTelegramMessage, } = await import('./_telegram.js');
         const user = await requireUser(req);
         const pool = getPool();
@@ -122,6 +123,27 @@ export default async function handler(req, res) {
         const productsTotal = getProductsTotal(items);
         const deliveryFee = getDeliveryFee(productsTotal);
         const total = productsTotal + deliveryFee;
+        const productIds = items
+            .map((item) => Number(item.id))
+            .filter((id) => Number.isFinite(id) && id > 0);
+        if (productIds.length > 0) {
+            const restrictedProductsResult = await pool.query(`
+            SELECT
+                id,
+                name,
+                category
+            FROM products
+            WHERE id = ANY($1::bigint[])
+              AND LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($2::text[])
+        `, [productIds, RESTRICTED_CATEGORY_NAMES]);
+            if (restrictedProductsResult.rows.length > 0 &&
+                !canViewRestrictedCategories(user)) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'В заказе есть товары из закрытых категорий. Они доступны только VIP-аккаунтам.',
+                });
+            }
+        }
         if (productsTotal < 100) {
             return res.status(400).json({
                 success: false,

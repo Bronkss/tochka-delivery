@@ -6,6 +6,10 @@ export const RESTRICTED_CATEGORY_NAMES = [
     'табачные изделия',
 ];
 
+export interface RestrictedAccessUser {
+    isVip?: boolean | null;
+}
+
 export function normalizeCategoryName(value: unknown): string {
     return String(value ?? '')
         .toLowerCase()
@@ -18,4 +22,10 @@ export function isRestrictedCategory(value: unknown): boolean {
     return RESTRICTED_CATEGORY_NAMES.includes(
         normalizeCategoryName(value)
     );
+}
+
+export function canViewRestrictedCategories(
+    user: RestrictedAccessUser | null | undefined
+): boolean {
+    return Boolean(user?.isVip);
 }

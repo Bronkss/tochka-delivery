@@ -24,7 +24,8 @@ export default async function handler(req, res) {
                     email,
                     password_hash,
                     name,
-                    phone
+                    phone,
+                    COALESCE(is_vip, false) AS "isVip"
                 FROM users
                 WHERE email = $1
                 LIMIT 1
@@ -44,6 +45,7 @@ export default async function handler(req, res) {
                 email: user.email,
                 name: user.name,
                 phone: user.phone,
+                isVip: Boolean(user.isVip),
             },
         });
     }

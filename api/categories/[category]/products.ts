@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getCurrentUser } from '../../_auth.js';
 import { getErrorMessage, getPool } from '../../../server/db.js';
 import {
+    canViewRestrictedCategories,
     isRestrictedCategory,
     RESTRICTED_CATEGORY_NAMES,
 } from '../../../server/restrictedCategories.js';
@@ -69,7 +71,10 @@ export default async function handler(
         });
     }
 
-    if (isRestrictedCategory(category)) {
+    const user = await getCurrentUser(req);
+    const showRestrictedCategories = canViewRestrictedCategories(user);
+
+    if (isRestrictedCategory(category) && !showRestrictedCategories) {
         console.warn(`Restricted category blocked: ${category}`);
 
         return res.status(200).json([]);
@@ -81,6 +86,18 @@ export default async function handler(
         console.log(`GET /api/categories/${category}/products started`);
 
         const pool = getPool();
+
+        const restrictedFilterSql = showRestrictedCategories
+            ? ''
+            : `
+                  AND NOT (
+                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($2::text[])
+                  )
+              `;
+
+        const queryParams = showRestrictedCategories
+            ? [category]
+            : [category, RESTRICTED_CATEGORY_NAMES];
 
         const result = await pool.query<ProductRow>(
             `
@@ -98,12 +115,10 @@ export default async function handler(
                 FROM products
                 WHERE stock > 0
                   AND category = $1
-                  AND NOT (
-                      LOWER(REPLACE(TRIM(category), 'ё', 'е')) = ANY($2::text[])
-                  )
+                  ${restrictedFilterSql}
                 ORDER BY id ASC
             `,
-            [category, RESTRICTED_CATEGORY_NAMES]
+            queryParams
         );
 
         const products = result.rows.map((row) => ({

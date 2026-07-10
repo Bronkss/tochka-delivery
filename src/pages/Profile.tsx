@@ -88,6 +88,12 @@ export default function Profile() {
                                 <h1>Личный кабинет</h1>
                                 <p>Ваши контактные данные для оформления заказа</p>
                             </div>
+
+                            {user.isVip && (
+                                <div className="profile-vip-badge">
+                                    VIP
+                                </div>
+                            )}
                         </div>
 
                         <div className="profile-info">
@@ -105,7 +111,22 @@ export default function Profile() {
                                 <span>Телефон</span>
                                 <strong>{user.phone || 'Не указан'}</strong>
                             </div>
+
+                            <div className="profile-info__row">
+                                <span>Статус</span>
+                                <strong>
+                                    {user.isVip
+                                        ? 'VIP-аккаунт'
+                                        : 'Обычный аккаунт'}
+                                </strong>
+                            </div>
                         </div>
+
+                        {user.isVip && (
+                            <div className="profile-vip-info">
+                                Вам доступны закрытые категории каталога.
+                            </div>
+                        )}
 
                         {(!user.name || !user.phone) && (
                             <div className="profile-warning">

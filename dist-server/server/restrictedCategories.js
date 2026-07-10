@@ -15,3 +15,6 @@ export function normalizeCategoryName(value) {
 export function isRestrictedCategory(value) {
     return RESTRICTED_CATEGORY_NAMES.includes(normalizeCategoryName(value));
 }
+export function canViewRestrictedCategories(user) {
+    return Boolean(user?.isVip);
+}
